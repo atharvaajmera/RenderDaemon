@@ -1,0 +1,23 @@
+## version: '3.8'
+
+services:
+  app:
+    image: golang:1.22-bullseye # Debian base makes apt-get install ffmpeg easy
+    working_dir: /app
+    volumes:
+      - .:/app                  # Syncs your local code to the container
+      - ./temp:/tmp/render-queue # Maps your temp folder
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    # Installs FFmpeg, then idles so we can execute scripts inside it
+    command: sh -c "apt-get update && apt-get install -y ffmpeg && tail -f /dev/null"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+## docker-compose up -d
