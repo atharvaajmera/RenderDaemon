@@ -2,7 +2,7 @@
 
 services:
   app:
-    image: golang:1.22-bullseye # Debian base makes apt-get install ffmpeg easy
+    image: golang:1.25-bookworm # Debian base makes apt-get install ffmpeg easy
     working_dir: /app
     volumes:
       - .:/app                  # Syncs your local code to the container
