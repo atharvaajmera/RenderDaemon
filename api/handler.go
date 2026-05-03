@@ -1,7 +1,9 @@
+// handler.go — HTTP handlers and route registration for the Render Queue API.
 package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -9,23 +11,20 @@ import (
 	"github.com/google/uuid"
 )
 
-// Handler holds dependencies for the HTTP handlers.
 type Handler struct {
 	Store *JobStore
 }
 
-// NewHandler creates a Handler with the given store.
 func NewHandler(store *JobStore) *Handler {
 	return &Handler{Store: store}
 }
 
-// RegisterRoutes wires up the API endpoints on the provided mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/jobs", h.handleJobs)
 	mux.HandleFunc("/jobs/", h.handleJobByID)
 }
 
-// handleJobs dispatches POST /jobs.
+// handleJobs — POST /jobs
 func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
@@ -37,7 +36,7 @@ func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
 	h.createJob(w, r)
 }
 
-// handleJobByID dispatches GET /jobs/{id}.
+// handleJobByID — GET /jobs/{id}
 func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
@@ -46,7 +45,6 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract the job ID from the URL path: /jobs/{id}
 	id := strings.TrimPrefix(r.URL.Path, "/jobs/")
 	if id == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
@@ -58,7 +56,7 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 	h.getJob(w, id)
 }
 
-// createJob handles POST /jobs — accepts a rendering job request.
+// createJob — POST /jobs: accepts a rendering job request.
 func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	var req CreateJobRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -68,22 +66,32 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.VideoID == "" || req.Template == "" || req.DynamicText == "" {
+	if req.InputVideoURL == "" || req.TemplateID == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
-			"error": "video_id, template, and dynamic_text are required",
+			"error": "input_video_url and template_id are required",
 		})
 		return
 	}
 
+	if req.DynamicText.Top == "" && req.DynamicText.Bottom == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "dynamic_text must include at least one of top or bottom",
+		})
+		return
+	}
+
+	jobID := uuid.New().String()
 	now := time.Now().UTC()
+
 	job := &Job{
-		ID:          uuid.New().String(),
-		VideoID:     req.VideoID,
-		Template:    req.Template,
-		DynamicText: req.DynamicText,
-		Status:      StatusPending,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:            jobID,
+		InputVideoURL: req.InputVideoURL,
+		OutputURL:     fmt.Sprintf("https://storage.service/outputs/%s.mp4", jobID),
+		TemplateID:    req.TemplateID,
+		DynamicText:   req.DynamicText,
+		Status:        StatusPending,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	h.Store.Save(job)
@@ -91,7 +99,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, job)
 }
 
-// getJob handles GET /jobs/{id} — returns job status and results.
+// getJob — GET /jobs/{id}: returns job status and details.
 func (h *Handler) getJob(w http.ResponseWriter, id string) {
 	job := h.Store.Get(id)
 	if job == nil {
@@ -104,7 +112,6 @@ func (h *Handler) getJob(w http.ResponseWriter, id string) {
 	writeJSON(w, http.StatusOK, job)
 }
 
-// writeJSON is a small helper that writes a JSON response.
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

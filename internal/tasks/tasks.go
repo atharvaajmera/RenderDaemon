@@ -3,6 +3,7 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/hibiken/asynq"
 )
 
@@ -10,19 +11,22 @@ const (
 	TypeRenderVideo = "video:render"
 )
 
-type RenderVideoPayload struct {
-	VideoID    string `json:"video_id"`
-	Template   string `json:"template"`
-	DynamicText string `json:"dynamic_text"`
+// DynamicText holds the text overlays for the video render.
+type DynamicText struct {
+	Top    string `json:"top"`
+	Bottom string `json:"bottom"`
 }
 
-func NewRenderVideoTask(videoID, template, text string) (*asynq.Task, error) {
-	payload := RenderVideoPayload{
-		VideoID:     videoID,
-		Template:    template,
-		DynamicText: text,
-	}
+// RenderVideoPayload is the contract between the API and the worker.
+type RenderVideoPayload struct {
+	JobID         string      `json:"job_id"`
+	InputVideoURL string      `json:"input_video_url"`
+	OutputURL     string      `json:"output_url"`
+	TemplateID    string      `json:"template_id"`
+	DynamicText   DynamicText `json:"dynamic_text"`
+}
 
+func NewRenderVideoTask(payload RenderVideoPayload) (*asynq.Task, error) {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode render task payload: %v", err)
