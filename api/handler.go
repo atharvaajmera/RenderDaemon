@@ -9,19 +9,25 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"render-queue/internal/config"
 )
 
 type Handler struct {
-	Store *JobStore
+	Store  *JobStore
+	Config *config.ConfigManager
 }
 
-func NewHandler(store *JobStore) *Handler {
-	return &Handler{Store: store}
+func NewHandler(store *JobStore, cfg *config.ConfigManager) *Handler {
+	return &Handler{Store: store, Config: cfg}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/jobs", h.handleJobs)
 	mux.HandleFunc("/jobs/", h.handleJobByID)
+	mux.HandleFunc("/profiles", h.handleProfiles)
+	mux.HandleFunc("/profiles/", h.handleProfileByID)
+	mux.HandleFunc("/workflows", h.handleWorkflows)
+	mux.HandleFunc("/workflows/", h.handleWorkflowByID)
 }
 
 // handleJobs — POST /jobs
@@ -56,7 +62,7 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 	h.getJob(w, id)
 }
 
-// createJob — POST /jobs: accepts a rendering job request.
+// createJob — POST /jobs
 func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	var req CreateJobRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -80,6 +86,13 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.Config.Profiles().Get(req.TemplateID) == nil && h.Config.Workflows().Get(req.TemplateID) == nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "template_id does not match any profile or workflow",
+		})
+		return
+	}
+
 	jobID := uuid.New().String()
 	now := time.Now().UTC()
 
@@ -99,7 +112,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, job)
 }
 
-// getJob — GET /jobs/{id}: returns job status and details.
+// getJob — GET /jobs/{id}
 func (h *Handler) getJob(w http.ResponseWriter, id string) {
 	job := h.Store.Get(id)
 	if job == nil {

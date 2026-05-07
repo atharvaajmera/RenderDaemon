@@ -6,11 +6,13 @@ import (
 	"net/http"
 
 	"render-queue/api"
+	"render-queue/internal/config"
 )
 
 func main() {
 	store := api.NewJobStore()
-	handler := api.NewHandler(store)
+	cfg := config.NewConfigManager()
+	handler := api.NewHandler(store, cfg)
 
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
