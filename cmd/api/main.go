@@ -17,7 +17,7 @@ func main() {
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 
-	addr := ":8080"
+	addr := ":9090"
 	fmt.Printf("Render Queue API server starting on %s\n", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("server failed: %v", err)
