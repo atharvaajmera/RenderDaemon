@@ -42,16 +42,12 @@ func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
 	h.createJob(w, r)
 }
 
-// handleJobByID — GET /jobs/{id}
+// handleJobByID — GET /jobs/{id}, PATCH /jobs/{id}/status
 func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
-			"error": "method not allowed, use GET",
-		})
-		return
-	}
+	path := strings.TrimPrefix(r.URL.Path, "/jobs/")
+	parts := strings.SplitN(path, "/", 2)
 
-	id := strings.TrimPrefix(r.URL.Path, "/jobs/")
+	id := parts[0]
 	if id == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "missing job id",
@@ -59,7 +55,53 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(parts) == 2 && parts[1] == "status" && r.Method == http.MethodPatch {
+		h.updateJobStatus(w, r, id)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "method not allowed",
+		})
+		return
+	}
+
 	h.getJob(w, id)
+}
+
+var validStatuses = map[string]bool{
+	StatusProcessing: true,
+	StatusCompleted:  true,
+	StatusFailed:     true,
+}
+
+// updateJobStatus — PATCH /jobs/{id}/status
+func (h *Handler) updateJobStatus(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateJobStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "invalid JSON body: " + err.Error(),
+		})
+		return
+	}
+
+	if !validStatuses[req.Status] {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "status must be one of: processing, completed, failed",
+		})
+		return
+	}
+
+	job := h.Store.UpdateStatus(id, req.Status, req.Result)
+	if job == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "job not found",
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, job)
 }
 
 // createJob — POST /jobs

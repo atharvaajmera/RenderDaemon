@@ -25,6 +25,7 @@ type Job struct {
 	TemplateID    string      `json:"template_id"`
 	DynamicText   DynamicText `json:"dynamic_text"`
 	Status        string      `json:"status"`
+	Result        string      `json:"result,omitempty"`
 	CreatedAt     time.Time   `json:"created_at"`
 	UpdatedAt     time.Time   `json:"updated_at"`
 }
@@ -33,6 +34,11 @@ type CreateJobRequest struct {
 	InputVideoURL string      `json:"input_video_url"`
 	TemplateID    string      `json:"template_id"`
 	DynamicText   DynamicText `json:"dynamic_text"`
+}
+
+type UpdateJobStatusRequest struct {
+	Status string `json:"status"`
+	Result string `json:"result,omitempty"`
 }
 
 type JobStore struct {
@@ -56,4 +62,19 @@ func (s *JobStore) Get(id string) *Job {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.jobs[id]
+}
+
+func (s *JobStore) UpdateStatus(id, status, result string) *Job {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	job, ok := s.jobs[id]
+	if !ok {
+		return nil
+	}
+	job.Status = status
+	if result != "" {
+		job.Result = result
+	}
+	job.UpdatedAt = time.Now().UTC()
+	return job
 }
