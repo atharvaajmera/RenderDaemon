@@ -4,21 +4,25 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"render-queue/internal/config"
+	"render-queue/internal/tasks"
 )
 
 type Handler struct {
 	Store  *JobStore
 	Config *config.ConfigManager
+	Queue  *asynq.Client
 }
 
-func NewHandler(store *JobStore, cfg *config.ConfigManager) *Handler {
-	return &Handler{Store: store, Config: cfg}
+func NewHandler(store *JobStore, cfg *config.ConfigManager, queue *asynq.Client) *Handler {
+	return &Handler{Store: store, Config: cfg, Queue: queue}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -150,6 +154,21 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Store.Save(job)
+
+	task, err := tasks.NewRenderVideoTask(tasks.RenderVideoPayload{
+		JobID:         jobID,
+		InputVideoURL: req.InputVideoURL,
+		OutputURL:     job.OutputURL,
+		TemplateID:    req.TemplateID,
+		DynamicText:   tasks.DynamicText{Top: req.DynamicText.Top, Bottom: req.DynamicText.Bottom},
+	})
+	if err != nil {
+		log.Printf("failed to create task for job %s: %v", jobID, err)
+	} else {
+		if _, err := h.Queue.Enqueue(task); err != nil {
+			log.Printf("failed to enqueue task for job %s: %v", jobID, err)
+		}
+	}
 
 	writeJSON(w, http.StatusCreated, job)
 }
