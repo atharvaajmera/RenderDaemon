@@ -6,6 +6,9 @@ services:
       - .:/app
       - ./temp:/tmp/render-queue
     env_file: .env
+    environment:
+      - REDIS_HOST=redis
+      - API_URL=http://app:9090
     command: sh -c "apt-get update && apt-get install -y ffmpeg && tail -f /dev/null"
     depends_on:
       - redis

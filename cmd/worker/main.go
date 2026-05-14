@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/hibiken/asynq"
+	"github.com/joho/godotenv"
 	"render-queue/internal/config"
 	"render-queue/internal/processor"
 	"render-queue/internal/tasks"
@@ -24,28 +25,17 @@ var (
 )
 
 func main() {
-	redisAddr := "localhost:6379"
-	if envAddr := os.Getenv("REDIS_HOST"); envAddr != "" {
-		redisPort := os.Getenv("REDIS_PORT")
-		if redisPort == "" {
-			redisPort = "6379"
-		}
-		redisAddr = envAddr + ":" + redisPort
-	}
+	godotenv.Load()
 
-	apiURL = "http://localhost:9090"
-	if envAPI := os.Getenv("API_URL"); envAPI != "" {
-		apiURL = envAPI
+	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+	apiURL = os.Getenv("API_URL")
+
+	concurrency := 3
+	if val, err := strconv.Atoi(os.Getenv("WORKER_CONCURRENCY")); err == nil && val > 0 {
+		concurrency = val
 	}
 
 	cfg = config.NewConfigManager()
-
-	concurrency := 3
-	if envConc := os.Getenv("WORKER_CONCURRENCY"); envConc != "" {
-		if val, err := strconv.Atoi(envConc); err == nil && val > 0 {
-			concurrency = val
-		}
-	}
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisAddr},

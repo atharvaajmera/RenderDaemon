@@ -7,19 +7,16 @@ import (
 	"os"
 
 	"github.com/hibiken/asynq"
+	"github.com/joho/godotenv"
 	"render-queue/api"
 	"render-queue/internal/config"
 )
 
 func main() {
-	redisAddr := "localhost:6379"
-	if envAddr := os.Getenv("REDIS_HOST"); envAddr != "" {
-		redisPort := os.Getenv("REDIS_PORT")
-		if redisPort == "" {
-			redisPort = "6379"
-		}
-		redisAddr = envAddr + ":" + redisPort
-	}
+	godotenv.Load()
+
+	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+	apiPort := os.Getenv("API_PORT")
 
 	queueClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 	defer queueClient.Close()
@@ -31,8 +28,8 @@ func main() {
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 
-	addr := ":9090"
-	fmt.Printf("Render Queue API server starting on %s (Redis: %s)\n", addr, redisAddr)
+	addr := ":" + apiPort
+	fmt.Printf("Render Queue API starting on %s (Redis: %s)\n", addr, redisAddr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
