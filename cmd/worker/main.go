@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/hibiken/asynq"
 	"render-queue/internal/config"
@@ -39,15 +40,22 @@ func main() {
 
 	cfg = config.NewConfigManager()
 
+	concurrency := 3
+	if envConc := os.Getenv("WORKER_CONCURRENCY"); envConc != "" {
+		if val, err := strconv.Atoi(envConc); err == nil && val > 0 {
+			concurrency = val
+		}
+	}
+
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisAddr},
-		asynq.Config{Concurrency: 3},
+		asynq.Config{Concurrency: concurrency},
 	)
 
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(tasks.TypeRenderVideo, handleRenderVideo)
 
-	fmt.Printf("Worker starting (Redis: %s, API: %s)\n", redisAddr, apiURL)
+	fmt.Printf("Worker starting (Redis: %s, API: %s, Concurrency: %d)\n", redisAddr, apiURL, concurrency)
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("worker failed: %v", err)
 	}
