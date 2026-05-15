@@ -32,6 +32,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/profiles/", h.handleProfileByID)
 	mux.HandleFunc("/workflows", h.handleWorkflows)
 	mux.HandleFunc("/workflows/", h.handleWorkflowByID)
+	mux.HandleFunc("/upload", h.handleUpload)
 }
 
 // handleJobs — POST /jobs

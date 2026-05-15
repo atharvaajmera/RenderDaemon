@@ -35,3 +35,6 @@ Thumbs.db
 
 .gocache/
 .env
+
+render-queue.md
+walkthrough.md
