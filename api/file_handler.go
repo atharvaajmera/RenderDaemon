@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -89,4 +90,49 @@ func (h *Handler) handleUpload(w http.ResponseWriter, r *http.Request) {
 		"size":     written,
 		"path":     relativePath,
 	})
+}
+
+// handleDownload — GET /download/{job_id}/{filename}
+func (h *Handler) handleDownload(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "method not allowed, use GET",
+		})
+		return
+	}
+
+	// Parse path: /download/{job_id}/{filename}
+	path := strings.TrimPrefix(r.URL.Path, "/download/")
+	parts := strings.SplitN(path, "/", 2)
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "path must be /download/{job_id}/{filename}",
+		})
+		return
+	}
+
+	jobID := parts[0]
+	filename := parts[1]
+
+	// Path traversal protection — reject any segment containing ".."
+	if strings.Contains(jobID, "..") || strings.Contains(filename, "..") {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "invalid path",
+		})
+		return
+	}
+
+	filePath := filepath.Join("temp", "output", jobID, filepath.Base(filename))
+
+	info, err := os.Stat(filePath)
+	if err != nil || info.IsDir() {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "file not found",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(filename)))
+	http.ServeFile(w, r, filePath)
 }
