@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -133,9 +135,18 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.DynamicText.Top == "" && req.DynamicText.Bottom == "" {
+	// Prevent path traversal
+	if strings.Contains(req.InputVideoURL, "..") {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
-			"error": "dynamic_text must include at least one of top or bottom",
+			"error": "invalid input_video_url path",
+		})
+		return
+	}
+
+	inputFilePath := filepath.Join("temp", req.InputVideoURL)
+	if info, err := os.Stat(inputFilePath); err != nil || info.IsDir() {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "input file does not exist or is invalid: " + req.InputVideoURL,
 		})
 		return
 	}
