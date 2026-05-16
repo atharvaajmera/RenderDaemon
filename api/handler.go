@@ -61,9 +61,15 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(parts) == 2 && parts[1] == "status" && r.Method == http.MethodPatch {
-		h.updateJobStatus(w, r, id)
-		return
+	if len(parts) == 2 {
+		if parts[1] == "status" && r.Method == http.MethodPatch {
+			h.updateJobStatus(w, r, id)
+			return
+		}
+		if parts[1] == "outputs" && r.Method == http.MethodGet {
+			h.handleJobOutputs(w, r, id)
+			return
+		}
 	}
 
 	if r.Method != http.MethodGet {

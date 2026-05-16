@@ -136,3 +136,52 @@ func (h *Handler) handleDownload(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(filename)))
 	http.ServeFile(w, r, filePath)
 }
+
+// handleJobOutputs — GET /jobs/{id}/outputs
+func (h *Handler) handleJobOutputs(w http.ResponseWriter, r *http.Request, jobID string) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "method not allowed, use GET",
+		})
+		return
+	}
+
+	job := h.Store.Get(jobID)
+	if job == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "job not found",
+		})
+		return
+	}
+
+	dirPath := filepath.Join("temp", "output", jobID)
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			writeJSON(w, http.StatusOK, []map[string]any{})
+			return
+		}
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "failed to read outputs directory: " + err.Error(),
+		})
+		return
+	}
+
+	outputs := make([]map[string]any, 0)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		outputs = append(outputs, map[string]any{
+			"filename":     entry.Name(),
+			"size":         info.Size(),
+			"download_url": fmt.Sprintf("/download/%s/%s", jobID, entry.Name()),
+		})
+	}
+
+	writeJSON(w, http.StatusOK, outputs)
+}
