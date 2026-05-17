@@ -38,16 +38,27 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/download/", h.handleDownload)
 }
 
-// handleJobs — POST /jobs
+// handleJobs — GET /jobs, POST /jobs
 func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	switch r.Method {
+	case http.MethodGet:
+		h.listJobs(w, r)
+	case http.MethodPost:
+		h.createJob(w, r)
+	default:
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
-			"error": "method not allowed, use POST",
+			"error": "method not allowed",
 		})
+	}
+}
+
+func (h *Handler) listJobs(w http.ResponseWriter, r *http.Request) {
+	status := r.URL.Query().Get("status")
+	if status != "" {
+		writeJSON(w, http.StatusOK, h.Store.ListByStatus(status))
 		return
 	}
-
-	h.createJob(w, r)
+	writeJSON(w, http.StatusOK, h.Store.List())
 }
 
 // handleJobByID — GET /jobs/{id}, PATCH /jobs/{id}/status

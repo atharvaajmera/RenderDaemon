@@ -25,6 +25,8 @@ type Job struct {
 	TemplateID    string      `json:"template_id"`
 	DynamicText   DynamicText `json:"dynamic_text"`
 	Status        string      `json:"status"`
+	Progress      float64     `json:"progress"`
+	Error         string      `json:"error,omitempty"`
 	Result        string      `json:"result,omitempty"`
 	CreatedAt     time.Time   `json:"created_at"`
 	UpdatedAt     time.Time   `json:"updated_at"`
@@ -77,4 +79,26 @@ func (s *JobStore) UpdateStatus(id, status, result string) *Job {
 	}
 	job.UpdatedAt = time.Now().UTC()
 	return job
+}
+
+func (s *JobStore) List() []*Job {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	jobs := make([]*Job, 0, len(s.jobs))
+	for _, job := range s.jobs {
+		jobs = append(jobs, job)
+	}
+	return jobs
+}
+
+func (s *JobStore) ListByStatus(status string) []*Job {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	jobs := make([]*Job, 0)
+	for _, job := range s.jobs {
+		if job.Status == status {
+			jobs = append(jobs, job)
+		}
+	}
+	return jobs
 }
