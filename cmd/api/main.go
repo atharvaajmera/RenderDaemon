@@ -21,9 +21,12 @@ func main() {
 	queueClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 	defer queueClient.Close()
 
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: redisAddr})
+	defer inspector.Close()
+
 	store := api.NewJobStore()
 	cfg := config.NewConfigManager()
-	handler := api.NewHandler(store, cfg, queueClient)
+	handler := api.NewHandler(store, cfg, queueClient, inspector)
 
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)

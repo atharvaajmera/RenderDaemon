@@ -18,13 +18,14 @@ import (
 )
 
 type Handler struct {
-	Store  *JobStore
-	Config *config.ConfigManager
-	Queue  *asynq.Client
+	Store     *JobStore
+	Config    *config.ConfigManager
+	Queue     *asynq.Client
+	Inspector *asynq.Inspector
 }
 
-func NewHandler(store *JobStore, cfg *config.ConfigManager, queue *asynq.Client) *Handler {
-	return &Handler{Store: store, Config: cfg, Queue: queue}
+func NewHandler(store *JobStore, cfg *config.ConfigManager, queue *asynq.Client, inspector *asynq.Inspector) *Handler {
+	return &Handler{Store: store, Config: cfg, Queue: queue, Inspector: inspector}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -85,6 +86,11 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if r.Method == http.MethodDelete {
+		h.cancelJob(w, id)
+		return
+	}
+
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
 			"error": "method not allowed",
@@ -93,6 +99,35 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.getJob(w, id)
+}
+
+func (h *Handler) cancelJob(w http.ResponseWriter, id string) {
+	job := h.Store.Get(id)
+	if job == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "job not found",
+		})
+		return
+	}
+
+	if job.Status == StatusCompleted || job.Status == StatusFailed || job.Status == StatusCancelled {
+		writeJSON(w, http.StatusConflict, map[string]string{
+			"error": "job is already completed, failed, or cancelled",
+		})
+		return
+	}
+
+	h.Store.UpdateStatus(id, StatusCancelled, "")
+
+	if job.TaskID != "" && h.Inspector != nil {
+		if err := h.Inspector.CancelProcessing(job.TaskID); err != nil {
+			log.Printf("failed to cancel task %s via inspector: %v", job.TaskID, err)
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{
+		"message": "job cancelled",
+	})
 }
 
 var validStatuses = map[string]bool{
@@ -195,8 +230,10 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("failed to create task for job %s: %v", jobID, err)
 	} else {
-		if _, err := h.Queue.Enqueue(task); err != nil {
+		if taskInfo, err := h.Queue.Enqueue(task); err != nil {
 			log.Printf("failed to enqueue task for job %s: %v", jobID, err)
+		} else {
+			job.TaskID = taskInfo.ID
 		}
 	}
 

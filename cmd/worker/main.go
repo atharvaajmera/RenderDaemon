@@ -84,7 +84,7 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 		FontPath:    fontPath,
 	}
 
-	result, err := processor.Process(req)
+	result, err := processor.Process(ctx, req)
 	if err != nil {
 		errMsg := fmt.Sprintf("processing failed: %v", err)
 		log.Printf("[job %s] %s", payload.JobID, errMsg)

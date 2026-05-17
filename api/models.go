@@ -11,6 +11,7 @@ const (
 	StatusProcessing = "processing"
 	StatusCompleted  = "completed"
 	StatusFailed     = "failed"
+	StatusCancelled  = "cancelled"
 )
 
 type DynamicText struct {
@@ -20,6 +21,7 @@ type DynamicText struct {
 
 type Job struct {
 	ID            string      `json:"id"`
+	TaskID        string      `json:"task_id,omitempty"`
 	InputVideoURL string      `json:"input_video_url"`
 	OutputURL     string      `json:"output_url"`
 	TemplateID    string      `json:"template_id"`

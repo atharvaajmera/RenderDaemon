@@ -2,6 +2,7 @@
 package processor
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -29,32 +30,32 @@ type ProcessResult struct {
 	OutputPath string
 }
 
-func Process(req ProcessRequest) (*ProcessResult, error) {
+func Process(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	if err := os.MkdirAll(req.OutputDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
 
 	switch req.Profile.Operation {
 	case "transcode":
-		return processTranscode(req)
+		return processTranscode(ctx, req)
 	case "compress":
-		return processCompress(req)
+		return processCompress(ctx, req)
 	case "scale":
-		return processScale(req)
+		return processScale(ctx, req)
 	case "extract_audio":
-		return processExtractAudio(req)
+		return processExtractAudio(ctx, req)
 	case "thumbnail":
-		return processThumbnail(req)
+		return processThumbnail(ctx, req)
 	case "preview_gif":
-		return processPreviewGIF(req)
+		return processPreviewGIF(ctx, req)
 	case "watermark":
-		return processWatermark(req)
+		return processWatermark(ctx, req)
 	default:
 		return nil, fmt.Errorf("unsupported operation: %s", req.Profile.Operation)
 	}
 }
 
-func processTranscode(req ProcessRequest) (*ProcessResult, error) {
+func processTranscode(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "mp4")
 	outputPath := filepath.Join(req.OutputDir, "output."+outputFormat)
@@ -77,10 +78,10 @@ func processTranscode(req ProcessRequest) (*ProcessResult, error) {
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processCompress(req ProcessRequest) (*ProcessResult, error) {
+func processCompress(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "mp4")
 	outputPath := filepath.Join(req.OutputDir, "output."+outputFormat)
@@ -112,10 +113,10 @@ func processCompress(req ProcessRequest) (*ProcessResult, error) {
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processScale(req ProcessRequest) (*ProcessResult, error) {
+func processScale(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "mp4")
 	outputPath := filepath.Join(req.OutputDir, "output."+outputFormat)
@@ -150,10 +151,10 @@ func processScale(req ProcessRequest) (*ProcessResult, error) {
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processExtractAudio(req ProcessRequest) (*ProcessResult, error) {
+func processExtractAudio(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "mp3")
 	outputPath := filepath.Join(req.OutputDir, "output."+outputFormat)
@@ -165,10 +166,10 @@ func processExtractAudio(req ProcessRequest) (*ProcessResult, error) {
 	}
 
 	args = append(args, "-y", outputPath)
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processThumbnail(req ProcessRequest) (*ProcessResult, error) {
+func processThumbnail(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "jpg")
 	outputPath := filepath.Join(req.OutputDir, "thumbnail."+outputFormat)
@@ -184,10 +185,10 @@ func processThumbnail(req ProcessRequest) (*ProcessResult, error) {
 	}
 
 	args = append(args, "-frames:v", "1", "-y", outputPath)
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processPreviewGIF(req ProcessRequest) (*ProcessResult, error) {
+func processPreviewGIF(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputPath := filepath.Join(req.OutputDir, "preview.gif")
 
@@ -205,10 +206,10 @@ func processPreviewGIF(req ProcessRequest) (*ProcessResult, error) {
 	palettegen := fmt.Sprintf("fps=%s,scale=%s:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse", fps, width)
 	args = append(args, "-filter_complex", palettegen, "-y", outputPath)
 
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
-func processWatermark(req ProcessRequest) (*ProcessResult, error) {
+func processWatermark(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
 	p := req.Profile.Parameters
 	outputFormat := getParam(p, "format", "mp4")
 	outputPath := filepath.Join(req.OutputDir, "output."+outputFormat)
@@ -235,7 +236,7 @@ func processWatermark(req ProcessRequest) (*ProcessResult, error) {
 		"-y", outputPath,
 	}
 
-	return runAndReturn(args, outputPath)
+	return runAndReturn(ctx, args, outputPath)
 }
 
 func buildDrawtextFilter(dt DynamicText, fontPath string) string {
@@ -290,12 +291,15 @@ func getParam(params map[string]string, key, fallback string) string {
 	return fallback
 }
 
-func runAndReturn(args []string, outputPath string) (*ProcessResult, error) {
-	cmd := exec.Command("ffmpeg", args...)
+func runAndReturn(ctx context.Context, args []string, outputPath string) (*ProcessResult, error) {
+	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
+		if ctx.Err() == context.Canceled {
+			return nil, fmt.Errorf("ffmpeg cancelled by context")
+		}
 		return nil, fmt.Errorf("ffmpeg failed: %v", err)
 	}
 
