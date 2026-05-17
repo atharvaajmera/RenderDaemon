@@ -45,6 +45,10 @@ type UpdateJobStatusRequest struct {
 	Result string `json:"result,omitempty"`
 }
 
+type UpdateJobProgressRequest struct {
+	Progress float64 `json:"progress"`
+}
+
 type JobStore struct {
 	mu   sync.RWMutex
 	jobs map[string]*Job
@@ -79,6 +83,18 @@ func (s *JobStore) UpdateStatus(id, status, result string) *Job {
 	if result != "" {
 		job.Result = result
 	}
+	job.UpdatedAt = time.Now().UTC()
+	return job
+}
+
+func (s *JobStore) UpdateProgress(id string, progress float64) *Job {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	job, ok := s.jobs[id]
+	if !ok {
+		return nil
+	}
+	job.Progress = progress
 	job.UpdatedAt = time.Now().UTC()
 	return job
 }

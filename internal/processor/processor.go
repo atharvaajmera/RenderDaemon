@@ -2,13 +2,17 @@
 package processor
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"render-queue/internal/config"
 )
@@ -24,6 +28,7 @@ type ProcessRequest struct {
 	Profile     *config.Profile
 	DynamicText DynamicText
 	FontPath    string
+	OnProgress  func(float64)
 }
 
 type ProcessResult struct {
@@ -78,7 +83,7 @@ func processTranscode(ctx context.Context, req ProcessRequest) (*ProcessResult, 
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processCompress(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -113,7 +118,7 @@ func processCompress(ctx context.Context, req ProcessRequest) (*ProcessResult, e
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processScale(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -151,7 +156,7 @@ func processScale(ctx context.Context, req ProcessRequest) (*ProcessResult, erro
 	}
 
 	args = append(args, "-c:a", "copy", "-y", outputPath)
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processExtractAudio(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -166,7 +171,7 @@ func processExtractAudio(ctx context.Context, req ProcessRequest) (*ProcessResul
 	}
 
 	args = append(args, "-y", outputPath)
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processThumbnail(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -185,7 +190,7 @@ func processThumbnail(ctx context.Context, req ProcessRequest) (*ProcessResult, 
 	}
 
 	args = append(args, "-frames:v", "1", "-y", outputPath)
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processPreviewGIF(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -206,7 +211,7 @@ func processPreviewGIF(ctx context.Context, req ProcessRequest) (*ProcessResult,
 	palettegen := fmt.Sprintf("fps=%s,scale=%s:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse", fps, width)
 	args = append(args, "-filter_complex", palettegen, "-y", outputPath)
 
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func processWatermark(ctx context.Context, req ProcessRequest) (*ProcessResult, error) {
@@ -236,7 +241,7 @@ func processWatermark(ctx context.Context, req ProcessRequest) (*ProcessResult, 
 		"-y", outputPath,
 	}
 
-	return runAndReturn(ctx, args, outputPath)
+	return runAndReturn(ctx, req, args, outputPath)
 }
 
 func buildDrawtextFilter(dt DynamicText, fontPath string) string {
@@ -291,17 +296,91 @@ func getParam(params map[string]string, key, fallback string) string {
 	return fallback
 }
 
-func runAndReturn(ctx context.Context, args []string, outputPath string) (*ProcessResult, error) {
+func runAndReturn(ctx context.Context, req ProcessRequest, args []string, outputPath string) (*ProcessResult, error) {
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stderr pipe: %v", err)
+	}
 
-	if err := cmd.Run(); err != nil {
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("ffmpeg start failed: %v", err)
+	}
+
+	durationRe := regexp.MustCompile(`Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})`)
+	timeRe := regexp.MustCompile(`time=(\d{2}):(\d{2}):(\d{2})\.(\d{2})`)
+
+	var totalDuration time.Duration
+	var lastReported float64
+
+	scanner := bufio.NewScanner(stderrPipe)
+	// FFmpeg outputs long lines sometimes, increase buffer
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
+	
+	// Split by carriage return to handle FFmpeg's continuous status updates on one line
+	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if i := strings.IndexAny(string(data), "\r\n"); i >= 0 {
+			return i + 1, data[0:i], nil
+		}
+		if atEOF {
+			return len(data), data, nil
+		}
+		return 0, nil, nil
+	})
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		
+		if totalDuration == 0 {
+			if matches := durationRe.FindStringSubmatch(line); len(matches) == 5 {
+				totalDuration = parseFFmpegTime(matches)
+			}
+		}
+
+		if totalDuration > 0 && req.OnProgress != nil {
+			if matches := timeRe.FindStringSubmatch(line); len(matches) == 5 {
+				currentTime := parseFFmpegTime(matches)
+				progress := float64(currentTime) / float64(totalDuration) * 100
+				progress = math.Round(progress*100) / 100
+				if progress > 100 {
+					progress = 100
+				}
+				// Debounce to 1% intervals
+				if progress - lastReported >= 1.0 || progress == 100 {
+					req.OnProgress(progress)
+					lastReported = progress
+				}
+			}
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
 		if ctx.Err() == context.Canceled {
 			return nil, fmt.Errorf("ffmpeg cancelled by context")
 		}
 		return nil, fmt.Errorf("ffmpeg failed: %v", err)
 	}
 
+	// Final progress bump
+	if req.OnProgress != nil && lastReported < 100.0 {
+		req.OnProgress(100.0)
+	}
+
 	return &ProcessResult{OutputPath: outputPath}, nil
+}
+
+func parseFFmpegTime(matches []string) time.Duration {
+	h, _ := strconv.Atoi(matches[1])
+	m, _ := strconv.Atoi(matches[2])
+	s, _ := strconv.Atoi(matches[3])
+	ms, _ := strconv.Atoi(matches[4])
+	return time.Duration(h)*time.Hour +
+		time.Duration(m)*time.Minute +
+		time.Duration(s)*time.Second +
+		time.Duration(ms)*10*time.Millisecond
 }

@@ -80,6 +80,10 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 			h.updateJobStatus(w, r, id)
 			return
 		}
+		if parts[1] == "progress" && r.Method == http.MethodPatch {
+			h.updateJobProgress(w, r, id)
+			return
+		}
 		if parts[1] == "outputs" && r.Method == http.MethodGet {
 			h.handleJobOutputs(w, r, id)
 			return
@@ -154,6 +158,27 @@ func (h *Handler) updateJobStatus(w http.ResponseWriter, r *http.Request, id str
 	}
 
 	job := h.Store.UpdateStatus(id, req.Status, req.Result)
+	if job == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "job not found",
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, job)
+}
+
+// updateJobProgress — PATCH /jobs/{id}/progress
+func (h *Handler) updateJobProgress(w http.ResponseWriter, r *http.Request, id string) {
+	var req UpdateJobProgressRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "invalid JSON body: " + err.Error(),
+		})
+		return
+	}
+
+	job := h.Store.UpdateProgress(id, req.Progress)
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",

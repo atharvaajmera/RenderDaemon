@@ -82,6 +82,9 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 		Profile:     profile,
 		DynamicText: processor.DynamicText{Top: payload.DynamicText.Top, Bottom: payload.DynamicText.Bottom},
 		FontPath:    fontPath,
+		OnProgress: func(progress float64) {
+			patchProgress(payload.JobID, progress)
+		},
 	}
 
 	result, err := processor.Process(ctx, req)
@@ -113,6 +116,26 @@ func patchStatus(jobID, status, result string) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("[job %s] failed to PATCH status to %s: %v", jobID, status, err)
+		return
+	}
+	resp.Body.Close()
+}
+
+func patchProgress(jobID string, progress float64) {
+	body, _ := json.Marshal(map[string]float64{
+		"progress": progress,
+	})
+
+	req, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/jobs/%s/progress", apiURL, jobID), bytes.NewReader(body))
+	if err != nil {
+		log.Printf("[job %s] failed to create PATCH request: %v", jobID, err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("[job %s] failed to PATCH progress %f: %v", jobID, progress, err)
 		return
 	}
 	resp.Body.Close()
