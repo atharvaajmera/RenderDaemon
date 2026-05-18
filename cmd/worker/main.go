@@ -17,6 +17,7 @@ import (
 	"render-queue/internal/config"
 	"render-queue/internal/processor"
 	"render-queue/internal/tasks"
+	"render-queue/internal/workflow"
 )
 
 var (
@@ -60,14 +61,6 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 	log.Printf("[job %s] received — template: %s, input: %s", payload.JobID, payload.TemplateID, payload.InputVideoURL)
 
 	patchStatus(payload.JobID, "processing", "")
-
-	profile := cfg.Profiles().ResolveProfile(payload.TemplateID)
-	if profile == nil {
-		errMsg := fmt.Sprintf("unknown template_id: %s", payload.TemplateID)
-		patchStatus(payload.JobID, "failed", errMsg)
-		return fmt.Errorf(errMsg)
-	}
-
 	inputPath := filepath.Join("temp", payload.InputVideoURL)
 	outputDir := filepath.Join("temp", "output", payload.JobID)
 
@@ -79,7 +72,6 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 	req := processor.ProcessRequest{
 		InputPath:   inputPath,
 		OutputDir:   outputDir,
-		Profile:     profile,
 		DynamicText: processor.DynamicText{Top: payload.DynamicText.Top, Bottom: payload.DynamicText.Bottom},
 		FontPath:    fontPath,
 		OnProgress: func(progress float64) {
@@ -87,9 +79,27 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 		},
 	}
 
-	result, err := processor.Process(ctx, req)
-	if err != nil {
-		errMsg := fmt.Sprintf("processing failed: %v", err)
+	var result *processor.ProcessResult
+	var processErr error
+
+	if wf := cfg.Workflows().Get(payload.TemplateID); wf != nil {
+		log.Printf("[job %s] executing workflow: %s", payload.JobID, wf.Name)
+		exec := workflow.NewExecutor(cfg.Profiles())
+		result, processErr = exec.Execute(ctx, wf, req, func(msg string) {
+			patchStatus(payload.JobID, "processing", msg)
+		})
+	} else if profile := cfg.Profiles().ResolveProfile(payload.TemplateID); profile != nil {
+		log.Printf("[job %s] executing profile: %s", payload.JobID, profile.Operation)
+		req.Profile = profile
+		result, processErr = processor.Process(ctx, req)
+	} else {
+		errMsg := fmt.Sprintf("unknown template_id (not a profile or workflow): %s", payload.TemplateID)
+		patchStatus(payload.JobID, "failed", errMsg)
+		return fmt.Errorf(errMsg)
+	}
+
+	if processErr != nil {
+		errMsg := fmt.Sprintf("processing failed: %v", processErr)
 		log.Printf("[job %s] %s", payload.JobID, errMsg)
 		patchStatus(payload.JobID, "failed", errMsg)
 		return fmt.Errorf(errMsg)

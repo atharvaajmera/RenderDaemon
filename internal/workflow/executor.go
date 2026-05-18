@@ -22,7 +22,7 @@ func NewExecutor(profiles *config.ProfileStore) *Executor {
 	}
 }
 
-func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq processor.ProcessRequest) (*processor.ProcessResult, error) {
+func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq processor.ProcessRequest, onStep func(string)) (*processor.ProcessResult, error) {
 	currentInput := initialReq.InputPath
 	var lastResult *processor.ProcessResult
 
@@ -56,7 +56,7 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 				
 				go func(sIndex int, stp config.WorkflowStep, bp, weight float64) {
 					defer wg.Done()
-					res, err := e.executeStep(ctx, stp, currentInput, initialReq, groupIndex, sIndex, bp, weight)
+					res, err := e.executeStep(ctx, stp, currentInput, initialReq, groupIndex, sIndex, bp, weight, onStep, stepsCompleted, totalSteps)
 					if err != nil {
 						errCh <- err
 						return
@@ -85,7 +85,7 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 				baseProgress := (float64(stepsCompleted) / float64(totalSteps)) * 100.0
 				stepProgressWeight := 100.0 / float64(totalSteps)
 				
-				res, err := e.executeStep(ctx, step, currentInput, initialReq, groupIndex, stepIndex, baseProgress, stepProgressWeight)
+				res, err := e.executeStep(ctx, step, currentInput, initialReq, groupIndex, stepIndex, baseProgress, stepProgressWeight, onStep, stepsCompleted, totalSteps)
 				if err != nil {
 					return nil, err
 				}
@@ -110,7 +110,7 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 	return lastResult, nil
 }
 
-func (e *Executor) executeStep(ctx context.Context, step config.WorkflowStep, currentInput string, initialReq processor.ProcessRequest, groupIndex, stepIndex int, baseProgress, stepProgressWeight float64) (*processor.ProcessResult, error) {
+func (e *Executor) executeStep(ctx context.Context, step config.WorkflowStep, currentInput string, initialReq processor.ProcessRequest, groupIndex, stepIndex int, baseProgress, stepProgressWeight float64, onStep func(string), stepsCompleted, totalSteps int) (*processor.ProcessResult, error) {
 	// Evaluate condition
 	if step.Condition != nil {
 		info, err := processor.GetVideoInfo(ctx, currentInput)
@@ -136,6 +136,10 @@ func (e *Executor) executeStep(ctx context.Context, step config.WorkflowStep, cu
 	stepOutputDir := filepath.Join(initialReq.OutputDir, fmt.Sprintf("group_%d_step_%d", groupIndex, stepIndex))
 	if err := os.MkdirAll(stepOutputDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create step output directory: %v", err)
+	}
+
+	if onStep != nil {
+		onStep(fmt.Sprintf("Executing step %d/%d (%s)", stepsCompleted+1, totalSteps, profile.Operation))
 	}
 
 	stepReq := processor.ProcessRequest{
