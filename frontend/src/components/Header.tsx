@@ -3,15 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FilmStrip, ListDashes, Gear } from '@phosphor-icons/react';
+import { FilmStripIcon, ListDashesIcon, GearIcon } from '@phosphor-icons/react';
 
 export function Header() {
   const pathname = usePathname();
 
   const links = [
-    { href: '/', label: 'Dashboard', icon: ListDashes },
-    { href: '/create', label: 'Create Masterpiece', icon: FilmStrip },
-    { href: '/config', label: 'Configuration', icon: Gear },
+    { href: '/', label: 'Dashboard', icon: ListDashesIcon },
+    { href: '/create', label: 'Create Masterpiece', icon: FilmStripIcon },
+    { href: '/config', label: 'Configuration', icon: GearIcon },
   ];
 
   return (
@@ -27,7 +27,7 @@ export function Header() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <FilmStrip size={32} weight="duotone" color="var(--color-cyan)" />
+        <FilmStripIcon size={32} weight="duotone" color="var(--color-cyan)" />
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '-0.05em' }}>
           Render<span style={{ color: 'var(--color-purple)' }}>Daemon</span>
         </h1>

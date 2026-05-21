@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/Card';
 import { StatusChip, JobStatus } from '@/components/StatusChip';
 import { ProgressBar } from '@/components/ProgressBar';
-import { Plus, X, Trash } from '@phosphor-icons/react';
+import { PlusIcon, XIcon, TrashIcon } from '@phosphor-icons/react';
 
 interface Job {
   id: string;
@@ -62,7 +62,7 @@ export default function Dashboard() {
             boxShadow: '0 4px 14px 0 rgba(138, 43, 226, 0.39)'
           }}
         >
-          <Plus weight="bold" />
+          <PlusIcon weight="bold" />
           New Masterpiece
         </Link>
       </div>
@@ -148,7 +148,7 @@ export default function Dashboard() {
                       onMouseOut={e => e.currentTarget.style.color = 'var(--color-text-secondary)'}
                       title="Cancel Job"
                     >
-                      <X weight="bold" size={20} />
+                      <XIcon weight="bold" size={20} />
                     </button>
                   )}
                   {job.status === 'completed' && (
