@@ -113,11 +113,39 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
   });
 }
 
-export async function getProfiles(): Promise<string[]> {
-  return apiFetch<string[]>('/profiles');
+export interface Profile {
+  id: string;
+  name: string;
+  description: string;
+  operation: string;
+  parameters: Record<string, string>;
+  created_at: string;
+  updated_at: string;
 }
 
-export async function getWorkflows(): Promise<string[]> {
-  return apiFetch<string[]>('/workflows');
+export interface WorkflowStep {
+  profile_id: string;
+}
+
+export interface WorkflowStepGroup {
+  parallel: boolean;
+  steps: WorkflowStep[];
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  step_groups: WorkflowStepGroup[];
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getProfiles(): Promise<Profile[]> {
+  return apiFetch<Profile[]>('/profiles');
+}
+
+export async function getWorkflows(): Promise<Workflow[]> {
+  return apiFetch<Workflow[]>('/workflows');
 }
 
