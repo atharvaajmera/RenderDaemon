@@ -9,7 +9,7 @@ export function Header() {
   const pathname = usePathname();
 
   const links = [
-    { href: '/', label: 'Dashboard', icon: ListDashesIcon },
+    { href: '/dashboard', label: 'Dashboard', icon: ListDashesIcon },
     { href: '/create', label: 'Create Masterpiece', icon: FilmStripIcon },
     { href: '/config', label: 'Configuration', icon: GearIcon },
   ];

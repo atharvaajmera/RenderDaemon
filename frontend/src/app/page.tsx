@@ -1,167 +1,252 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/Card';
-import { StatusChip, JobStatus } from '@/components/StatusChip';
-import { ProgressBar } from '@/components/ProgressBar';
-import { PlusIcon, XIcon, TrashIcon } from '@phosphor-icons/react';
+import { FileArrowUp, FilmStrip, Image as ImageIcon, Subtitles, Gif } from '@phosphor-icons/react';
 
-interface Job {
-  id: string;
-  template: string;
-  status: JobStatus;
-  progress: number;
-  createdAt: string;
-}
-
-export default function Dashboard() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Mock data for now, eventually this will fetch from the Go backend.
-  useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setJobs([
-        { id: 'job-1234', template: 'Marketing Video', status: 'processing', progress: 45, createdAt: new Date().toISOString() },
-        { id: 'job-5678', template: 'Social Media Reel', status: 'completed', progress: 100, createdAt: new Date(Date.now() - 3600000).toISOString() },
-        { id: 'job-9012', template: 'Tutorial Intro', status: 'pending', progress: 0, createdAt: new Date(Date.now() - 60000).toISOString() },
-        { id: 'job-3456', template: 'Product Showcase', status: 'failed', progress: 12, createdAt: new Date(Date.now() - 7200000).toISOString() },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  const handleCancel = (id: string) => {
-    // Optimistic UI update
-    setJobs(jobs.map(job => job.id === id ? { ...job, status: 'cancelled' } : job));
-  };
-
-  const activeJobs = jobs.filter(j => j.status === 'processing' || j.status === 'pending').length;
-
+export default function LandingPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Render Queue</h2>
-          <p style={{ color: 'var(--color-text-secondary)' }}>Overview of your current and past rendering jobs.</p>
-        </div>
-        <Link 
-          href="/create"
-          style={{
-            display: 'flex',
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      overflowX: 'hidden',
+      backgroundImage: `url('https://lh3.googleusercontent.com/aida/ADBb0uhDykt74OfhkL2Fqn8w1mRj_fYHAi7tYweE_dLobEMwQAvHFZ7kAzPCdZhlbC0_Bngd2Qe52SgU7Mh6Mkrbp3s0JkwGrGrHLSlCZm39RA0kx4nphLgYEPx6DaL0q3hr8xlwFQXlUJBQe1CYhKHHu28kj6FdRCXvo3_qU9wbBqPAsI22a_7kYacsrMUEybxjJTw8XP8LcDwMnfm_8LQpkInwGUIbRav91AG2108GEEprDI7Fejzydb30YvI')`,
+      backgroundAttachment: 'fixed',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      color: 'white'
+    }}>
+       {/* Landing Page specific header */}
+       <header style={{ 
+          padding: '1.5rem 2rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(26, 26, 26, 0.6)',
+          backdropFilter: 'blur(12px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50
+       }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.5rem' }}>
+            <span style={{ color: 'white' }}>RenderDaemon</span>
+          </div>
+          <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+             <Link href="/dashboard" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Login</Link>
+             <Link href="/create" style={{ 
+               padding: '0.5rem 1rem', 
+               background: 'var(--color-cyan)', 
+               color: '#002022', 
+               borderRadius: '8px', 
+               textDecoration: 'none', 
+               fontSize: '0.875rem', 
+               fontWeight: 600,
+               textTransform: 'uppercase',
+               letterSpacing: '0.05em'
+             }}>
+               Start Rendering
+             </Link>
+          </nav>
+       </header>
+
+       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          
+          {/* Hero Section */}
+          <section style={{ 
+            position: 'relative', 
+            width: '100%', 
+            minHeight: '90vh', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: '6rem 2rem 4rem',
+            overflow: 'hidden'
+          }}>
+            {/* Gradient transition overlay */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(19,19,19,0.4), rgba(19,19,19,0.8))', zIndex: 0 }} />
+            
+            {/* Decorative floating pills */}
+            <div className="floating-pill" style={{ top: '25%', left: '10%', width: '128px', height: '40px', transform: 'rotate(30deg)', animationDuration: '4s' }} />
+            <div className="floating-pill" style={{ bottom: '33%', right: '15%', width: '96px', height: '32px', transform: 'rotate(-15deg)', animationDuration: '5s' }} />
+            <div className="floating-pill" style={{ top: '33%', right: '10%', width: '64px', height: '24px', transform: 'rotate(45deg)', animationDuration: '6s' }} />
+
+            <div style={{ position: 'relative', zIndex: 10, maxWidth: '1280px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '2rem' }}>
+              
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 1rem', borderRadius: '999px', border: '1px solid rgba(0,238,252,0.5)', background: 'rgba(0,238,252,0.2)', backdropFilter: 'blur(12px)', boxShadow: '0 0 10px rgba(0,238,252,0.3)' }}>
+                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-cyan)', boxShadow: '0 0 8px var(--color-cyan)', animation: 'pulse 2s infinite' }} />
+                 <span className="mono-text" style={{ fontSize: '0.875rem', color: 'white' }}>System V2.4 is Live</span>
+              </div>
+
+              <h2 style={{ fontSize: 'clamp(3rem, 6vw, 4rem)', fontWeight: 700, lineHeight: 1.1, maxWidth: '900px', letterSpacing: '-0.02em', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                Render, transform, and <span style={{ background: 'linear-gradient(to right, var(--color-cyan), #7df4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>automate</span> media workflows.
+              </h2>
+              
+              <p style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.9)', maxWidth: '600px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                One upload. Infinite outputs. Production-ready assets in seconds. The sophisticated framework for modern creators.
+              </p>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                 <Link href="/create" style={{ 
+                   display: 'flex', 
+                   alignItems: 'center', 
+                   padding: '1rem 2rem', 
+                   background: 'rgba(0,0,0,0.4)', 
+                   border: '1px solid var(--color-cyan)', 
+                   color: 'var(--color-cyan)', 
+                   borderRadius: '12px', 
+                   fontSize: '0.875rem', 
+                   fontWeight: 600, 
+                   textTransform: 'uppercase', 
+                   letterSpacing: '0.05em',
+                   textDecoration: 'none', 
+                   backdropFilter: 'blur(12px)',
+                   boxShadow: '0 0 20px rgba(0,238,252,0.4)', 
+                   transition: 'all 0.2s' 
+                 }} className="btn-hover-cyan">
+                   Start Creating
+                 </Link>
+                 <Link href="/config" style={{ 
+                   display: 'flex', 
+                   alignItems: 'center', 
+                   padding: '1rem 2rem', 
+                   background: 'rgba(255,255,255,0.1)', 
+                   border: '1px solid rgba(255,255,255,0.2)', 
+                   color: 'white', 
+                   borderRadius: '12px', 
+                   fontSize: '0.875rem', 
+                   fontWeight: 600, 
+                   textTransform: 'uppercase', 
+                   letterSpacing: '0.05em',
+                   textDecoration: 'none', 
+                   backdropFilter: 'blur(12px)',
+                   transition: 'all 0.2s' 
+                 }} className="btn-hover-glass">
+                   Explore Templates
+                 </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Value Prop Section */}
+          <section style={{ 
+            width: '100%', 
+            maxWidth: '1280px', 
+            padding: '6rem 2rem', 
+            display: 'flex', 
+            flexDirection: 'column', 
             alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'var(--color-purple)',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontWeight: 600,
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 14px 0 rgba(138, 43, 226, 0.39)'
-          }}
-        >
-          <PlusIcon weight="bold" />
-          New Masterpiece
-        </Link>
-      </div>
+            position: 'relative',
+            zIndex: 10,
+            background: 'rgba(19, 19, 19, 0.6)',
+            backdropFilter: 'blur(8px)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+              <h3 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '1rem' }}>One Upload → Multi-Output</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+                Upload your master file once, and let the daemon generate every format your project demands instantly.
+              </p>
+            </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-        <Card glow={activeJobs > 0}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Active Jobs</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--color-cyan)' }}>{activeJobs}</span>
-          </div>
-        </Card>
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Completed Today</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700 }}>{jobs.filter(j => j.status === 'completed').length}</span>
-          </div>
-        </Card>
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Jobs</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700 }}>{jobs.length}</span>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Recent Jobs</h3>
-        
-        {loading ? (
-          <div className="scanner-bar-container" style={{ height: '2px', background: 'var(--color-bg-base)', borderRadius: '2px' }}>
-            <div className="scanner-bar" />
-          </div>
-        ) : jobs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-            No jobs found. Create one to get started!
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {jobs.map(job => (
-              <div 
-                key={job.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--color-border)'
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: 600 }}>{job.template}</span>
-                  <Link href={job.status === 'completed' ? `/share/${job.id}` : `/job/${job.id}`} className="mono-text" style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textDecoration: 'underline' }}>
-                    {job.id}
-                  </Link>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
+              
+              {/* Central Source */}
+              <div style={{ position: 'relative', zIndex: 10, background: 'rgba(53, 53, 52, 0.5)', backdropFilter: 'blur(12px)', padding: '1.5rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', border: '1px solid rgba(0,238,252,0.5)', boxShadow: '0 0 20px rgba(0,238,252,0.2)' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(0,238,252,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileArrowUp size={32} color="var(--color-cyan)" weight="fill" />
                 </div>
+                <span className="mono-text" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Original Upload</span>
+              </div>
 
-                <div style={{ width: '100%' }}>
-                  <ProgressBar progress={job.progress} label={job.status === 'processing' ? 'Rendering...' : undefined} />
+              {/* Outputs Cluster */}
+              <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '280px', margin: '0 auto' }} className="outputs-cluster">
+                
+                <div className="output-item">
+                  <FilmStrip size={24} color="var(--color-cyan)" />
+                  <span className="mono-text" style={{ fontSize: '0.75rem' }}>Compressed Video</span>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <StatusChip status={job.status} />
+                
+                <div className="output-item">
+                  <ImageIcon size={24} color="#00dbe9" />
+                  <span className="mono-text" style={{ fontSize: '0.75rem' }}>Thumbnail Pack</span>
                 </div>
-
-                <div className="mono-text" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
-                  {new Date(job.createdAt).toLocaleTimeString()}
+                
+                <div className="output-item">
+                  <Subtitles size={24} color="var(--color-cyan)" />
+                  <span className="mono-text" style={{ fontSize: '0.75rem' }}>Subtitle Version</span>
                 </div>
-
-                <div>
-                  {(job.status === 'processing' || job.status === 'pending') && (
-                    <button 
-                      onClick={() => handleCancel(job.id)}
-                      style={{ 
-                        padding: '0.5rem', 
-                        color: 'var(--color-text-secondary)',
-                        transition: 'color 0.2s',
-                        borderRadius: '4px'
-                      }}
-                      onMouseOver={e => e.currentTarget.style.color = 'var(--color-error)'}
-                      onMouseOut={e => e.currentTarget.style.color = 'var(--color-text-secondary)'}
-                      title="Cancel Job"
-                    >
-                      <XIcon weight="bold" size={20} />
-                    </button>
-                  )}
-                  {job.status === 'completed' && (
-                    <Link href={`/share/${job.id}`} style={{ padding: '0.5rem', color: 'var(--color-cyan)' }}>
-                      View
-                    </Link>
-                  )}
+                
+                <div className="output-item">
+                  <Gif size={24} color="#00dbe9" />
+                  <span className="mono-text" style={{ fontSize: '0.75rem' }}>Preview GIF</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
+            </div>
+          </section>
+       </main>
+       
+       <footer style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '2rem', textAlign: 'center', background: '#0e0e0e' }}>
+          <p className="mono-text" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>© 2026 RenderDaemon. Professional Media Automation.</p>
+       </footer>
+
+       <style>{`
+         @keyframes pulse {
+           0% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 238, 252, 0.4); }
+           70% { opacity: 1; box-shadow: 0 0 0 10px rgba(0, 238, 252, 0); }
+           100% { opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 238, 252, 0); }
+         }
+         @keyframes float-pulse {
+           0% { opacity: 0.6; transform: scale(0.95) rotate(var(--rot)); }
+           50% { opacity: 1; transform: scale(1.05) rotate(var(--rot)); }
+           100% { opacity: 0.6; transform: scale(0.95) rotate(var(--rot)); }
+         }
+         .floating-pill {
+           position: absolute;
+           background: rgba(255, 255, 255, 0.1);
+           backdrop-filter: blur(16px);
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           border-radius: 999px;
+           box-shadow: 0 0 20px rgba(255,255,255,0.1);
+           z-index: 0;
+           animation-name: float-pulse;
+           animation-iteration-count: infinite;
+           animation-timing-function: ease-in-out;
+         }
+         
+         .btn-hover-cyan:hover {
+           transform: translateY(-2px);
+           box-shadow: 0 0 30px rgba(0,238,252,0.6) !important;
+           background: rgba(0,238,252,0.1) !important;
+         }
+         .btn-hover-glass:hover {
+           background: rgba(255,255,255,0.2) !important;
+         }
+
+         .output-item {
+           background: rgba(26, 26, 26, 0.6);
+           backdrop-filter: blur(12px);
+           border: 1px solid rgba(255,255,255,0.1);
+           padding: 0.75rem 1rem;
+           border-radius: 12px;
+           display: flex;
+           align-items: center;
+           gap: 1rem;
+           transition: all 0.3s ease;
+           cursor: default;
+         }
+         .output-item:hover {
+           background: rgba(53, 53, 52, 0.8);
+           border-color: rgba(0,238,252,0.5);
+           transform: translateX(-8px);
+         }
+         
+         @media (min-width: 768px) {
+           .outputs-cluster {
+             margin: 0;
+           }
+         }
+       `}</style>
     </div>
   );
 }
