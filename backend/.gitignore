@@ -19,8 +19,11 @@ go.work.sum
 # Dependency directory
 vendor/
 
-# Temp / media files
-temp/
+# Storage directories
+storage/uploads/
+storage/renders/
+storage/temp/
+storage/font.ttf
 
 # IDE / editor
 .vscode/

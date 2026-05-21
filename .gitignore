@@ -17,7 +17,10 @@ Thumbs.db
 *~
 
 # Go ignores (Backend)
-backend/temp/
+backend/storage/uploads/
+backend/storage/renders/
+backend/storage/temp/
+backend/storage/font.ttf
 backend/.gocache/
 backend/.env
 backend/go.work

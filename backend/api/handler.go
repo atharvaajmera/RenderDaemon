@@ -214,7 +214,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inputFilePath := filepath.Join("temp", req.InputVideoURL)
+	inputFilePath := filepath.Join("storage", req.InputVideoURL)
 	if info, err := os.Stat(inputFilePath); err != nil || info.IsDir() {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "input file does not exist or is invalid: " + req.InputVideoURL,

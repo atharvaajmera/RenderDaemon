@@ -37,6 +37,9 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 
 	stepsCompleted := 0
 
+	var outputPaths []string
+	var pathsMu sync.Mutex
+
 	for groupIndex, group := range wf.StepGroups {
 		if group.Parallel {
 			var wg sync.WaitGroup
@@ -65,6 +68,10 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 						mu.Lock()
 						lastResult = res
 						mu.Unlock()
+						
+						pathsMu.Lock()
+						outputPaths = append(outputPaths, res.OutputPath)
+						pathsMu.Unlock()
 					}
 				}(stepIndex, step, baseProgress, stepProgressWeight)
 			}
@@ -92,18 +99,26 @@ func (e *Executor) Execute(ctx context.Context, wf *config.Workflow, initialReq 
 				if res != nil {
 					lastResult = res
 					currentInput = res.OutputPath
+					
+					pathsMu.Lock()
+					outputPaths = append(outputPaths, res.OutputPath)
+					pathsMu.Unlock()
 				}
 				stepsCompleted++
 			}
 		}
 	}
-// Move final output to the main output directory
-	if lastResult != nil {
-		finalName := filepath.Base(lastResult.OutputPath)
-		finalDest := filepath.Join(initialReq.OutputDir, finalName)
 
-		if err := os.Rename(lastResult.OutputPath, finalDest); err == nil {
-			lastResult.OutputPath = finalDest
+	// Move all successful step outputs to the main output directory
+	for _, path := range outputPaths {
+		filename := filepath.Base(path)
+		dest := filepath.Join(initialReq.OutputDir, filename)
+		if path != dest {
+			if err := os.Rename(path, dest); err == nil {
+				if lastResult != nil && lastResult.OutputPath == path {
+					lastResult.OutputPath = dest
+				}
+			}
 		}
 	}
 

@@ -61,12 +61,12 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 	log.Printf("[job %s] received — template: %s, input: %s", payload.JobID, payload.TemplateID, payload.InputVideoURL)
 
 	patchStatus(payload.JobID, "processing", "")
-	inputPath := filepath.Join("temp", payload.InputVideoURL)
-	outputDir := filepath.Join("temp", "output", payload.JobID)
+	inputPath := filepath.Join("storage", payload.InputVideoURL)
+	outputDir := filepath.Join("storage", "temp", payload.JobID)
 
 	fontPath := ""
-	if _, err := os.Stat("temp/font.ttf"); err == nil {
-		fontPath = "temp/font.ttf"
+	if _, err := os.Stat("storage/font.ttf"); err == nil {
+		fontPath = "storage/font.ttf"
 	}
 
 	req := processor.ProcessRequest{
@@ -105,8 +105,47 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf(errMsg)
 	}
 
-	log.Printf("[job %s] completed — output: %s", payload.JobID, result.OutputPath)
-	patchStatus(payload.JobID, "completed", result.OutputPath)
+	// Move outputs to renders folder and clean up temp workspace
+	if err := finalizeRenderOutputs(payload.JobID); err != nil {
+		errMsg := fmt.Sprintf("failed to finalize outputs: %v", err)
+		log.Printf("[job %s] %s", payload.JobID, errMsg)
+		patchStatus(payload.JobID, "failed", errMsg)
+		return fmt.Errorf(errMsg)
+	}
+
+	// Update the final output path to the renders directory
+	finalOutputPath := filepath.Join("storage", "renders", payload.JobID, filepath.Base(result.OutputPath))
+	log.Printf("[job %s] completed — output: %s", payload.JobID, finalOutputPath)
+	patchStatus(payload.JobID, "completed", finalOutputPath)
+	return nil
+}
+
+func finalizeRenderOutputs(jobID string) error {
+	tempDir := filepath.Join("storage", "temp", jobID)
+	renderDir := filepath.Join("storage", "renders", jobID)
+
+	if err := os.MkdirAll(renderDir, 0755); err != nil {
+		return fmt.Errorf("failed to create render directory: %v", err)
+	}
+
+	entries, err := os.ReadDir(tempDir)
+	if err != nil {
+		return fmt.Errorf("failed to read temp directory: %v", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		src := filepath.Join(tempDir, entry.Name())
+		dst := filepath.Join(renderDir, entry.Name())
+		if err := os.Rename(src, dst); err != nil {
+			return fmt.Errorf("failed to move file %s to %s: %v", src, dst, err)
+		}
+	}
+
+	// Clean up tempDir (recursively deletes any remaining step subfolders)
+	os.RemoveAll(tempDir)
 	return nil
 }
 

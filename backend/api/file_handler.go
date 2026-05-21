@@ -53,7 +53,7 @@ func (h *Handler) handleUpload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	fileID := uuid.New().String()
-	uploadDir := filepath.Join("temp", "uploads", fileID)
+	uploadDir := filepath.Join("storage", "uploads", fileID)
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{
 			"error": "failed to create upload directory: " + err.Error(),
@@ -123,7 +123,7 @@ func (h *Handler) handleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join("temp", "output", jobID, filepath.Base(filename))
+	filePath := filepath.Join("storage", "renders", jobID, filepath.Base(filename))
 
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
@@ -154,7 +154,7 @@ func (h *Handler) handleJobOutputs(w http.ResponseWriter, r *http.Request, jobID
 		return
 	}
 
-	dirPath := filepath.Join("temp", "output", jobID)
+	dirPath := filepath.Join("storage", "renders", jobID)
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		if os.IsNotExist(err) {
