@@ -12,6 +12,21 @@ import (
 	"render-queue/internal/config"
 )
 
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	godotenv.Load()
 
@@ -33,7 +48,7 @@ func main() {
 
 	addr := ":" + apiPort
 	fmt.Printf("Render Queue API starting on %s (Redis: %s)\n", addr, redisAddr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	if err := http.ListenAndServe(addr, enableCORS(mux)); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
 }
