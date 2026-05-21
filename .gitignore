@@ -1,26 +1,13 @@
-# Binaries
+# Root GitIgnore for RenderQueue Project
+
+# Binaries & OS files
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Go test binary
-*.test
-
-# Go coverage
-*.out
-*.prof
-
-# Go workspace
-go.work
-go.work.sum
-
-# Dependency directory
-vendor/
-
-# Temp / media files
-temp/
+.DS_Store
+Thumbs.db
 
 # IDE / editor
 .vscode/
@@ -29,12 +16,27 @@ temp/
 *.swo
 *~
 
-# OS files
-.DS_Store
-Thumbs.db
+# Go ignores (Backend)
+backend/temp/
+backend/.gocache/
+backend/.env
+backend/go.work
+backend/go.work.sum
+backend/vendor/
+*.test
+*.out
+*.prof
 
-.gocache/
-.env
+# Next.js ignores (Frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env*.local
+frontend/.vercel
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
 
+# Root documentation and plans
 render-queue.md
 walkthrough.md
