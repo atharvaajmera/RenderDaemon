@@ -10,7 +10,7 @@ export default function LandingPage() {
       display: 'flex', 
       flexDirection: 'column', 
       overflowX: 'hidden',
-      backgroundImage: `url('https://lh3.googleusercontent.com/aida/ADBb0uhDykt74OfhkL2Fqn8w1mRj_fYHAi7tYweE_dLobEMwQAvHFZ7kAzPCdZhlbC0_Bngd2Qe52SgU7Mh6Mkrbp3s0JkwGrGrHLSlCZm39RA0kx4nphLgYEPx6DaL0q3hr8xlwFQXlUJBQe1CYhKHHu28kj6FdRCXvo3_qU9wbBqPAsI22a_7kYacsrMUEybxjJTw8XP8LcDwMnfm_8LQpkInwGUIbRav91AG2108GEEprDI7Fejzydb30YvI')`,
+      backgroundImage: `url('/vibrant-mesh-bg.png')`,
       backgroundAttachment: 'fixed',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
@@ -139,8 +139,13 @@ export default function LandingPage() {
             alignItems: 'center',
             position: 'relative',
             zIndex: 10,
-            background: 'rgba(19, 19, 19, 0.6)',
-            backdropFilter: 'blur(8px)'
+            background: 'rgba(16, 16, 20, 0.2)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.05)',
+            marginTop: '2rem',
+            marginBottom: '4rem',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
               <h3 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '1rem' }}>One Upload → Multi-Output</h3>
@@ -203,11 +208,9 @@ export default function LandingPage() {
          }
          .floating-pill {
            position: absolute;
-           background: rgba(255, 255, 255, 0.1);
-           backdrop-filter: blur(16px);
-           border: 1px solid rgba(255, 255, 255, 0.2);
+           background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(138, 43, 226, 0.4));
+           filter: blur(20px);
            border-radius: 999px;
-           box-shadow: 0 0 20px rgba(255,255,255,0.1);
            z-index: 0;
            animation-name: float-pulse;
            animation-iteration-count: infinite;
