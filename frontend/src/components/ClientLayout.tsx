@@ -6,11 +6,11 @@ import React from 'react';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  if (pathname === '/') {
+
+  if (pathname === '/' || pathname.startsWith('/job')) {
     return <main>{children}</main>;
   }
-  
+
   return (
     <div className="container">
       <Header />
