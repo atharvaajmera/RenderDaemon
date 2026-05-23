@@ -106,3 +106,13 @@ button {
   background: linear-gradient(90deg, transparent, var(--color-cyan), transparent);
   animation: scan 2s infinite linear;
 }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@keyframes pulse-frame {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
