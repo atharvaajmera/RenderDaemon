@@ -1,16 +1,16 @@
 :root {
-  --color-bg-base: #101014;
-  --color-bg-surface: rgba(26, 26, 26, 0.6);
-  --color-purple: #8a2be2;
-  --color-cyan: #00f0ff;
+  --color-bg-base: #0F0F0F;
+  --color-bg-surface: rgba(26, 26, 26, 0.8);
+  --color-purple: #8A2BE2;
+  --color-cyan: #00F0FF;
   --color-cyan-glow: rgba(0, 240, 255, 0.3);
   --color-cyan-border: rgba(0, 240, 255, 0.5);
   --color-border: rgba(152, 140, 160, 0.2);
-  --color-text-primary: #ffffff;
-  --color-text-secondary: rgba(255, 255, 255, 0.7);
-  --color-text-muted: rgba(255, 255, 255, 0.4);
-  --color-success: #00e676;
-  --color-error: #ff1744;
+  --color-text-primary: #e5e2e1;
+  --color-text-secondary: #cfc2d7;
+  --color-text-muted: #94A3B8;
+  --color-success: #10B981;
+  --color-error: #EF4444;
 }
 
 * {
@@ -27,16 +27,6 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-inter), sans-serif;
   min-height: 100vh;
-}
-
-body {
-  /* Using fixed, full-viewport backdrop logic described in the plan */
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(138, 43, 226, 0.08), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08), transparent 25%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  background-size: cover;
 }
 
 a {
@@ -66,7 +56,7 @@ button {
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   padding: 1.5rem;
   transition: all 0.3s ease;

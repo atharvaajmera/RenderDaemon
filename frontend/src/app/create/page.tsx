@@ -169,7 +169,7 @@ export default function CreateJobPage() {
               onClick={() => !uploadedFilePath && !isUploading && fileInputRef.current?.click()}
               style={{
                 border: `2px dashed ${isDragging ? 'var(--color-cyan)' : 'rgba(255, 255, 255, 0.1)'}`,
-                borderRadius: '12px',
+                borderRadius: '8px',
                 padding: '3rem 2rem',
                 textAlign: 'center',
                 backgroundColor: isDragging ? 'rgba(0, 240, 255, 0.02)' : 'rgba(0, 0, 0, 0.2)',
@@ -243,7 +243,7 @@ export default function CreateJobPage() {
                 style={{
                   background: selectedTemplate === wf.id ? 'rgba(0, 240, 255, 0.08)' : 'rgba(20, 20, 28, 0.5)',
                   border: `1px solid ${selectedTemplate === wf.id ? 'var(--color-cyan)' : 'rgba(255, 255, 255, 0.08)'}`,
-                  borderRadius: '12px',
+                  borderRadius: '8px',
                   padding: '1.25rem',
                   cursor: uploadedFilePath ? 'pointer' : 'not-allowed',
                   transition: 'all 0.2s ease',
@@ -318,9 +318,9 @@ export default function CreateJobPage() {
               alignItems: 'center',
               gap: '0.75rem',
               padding: '1rem 2.5rem',
-              background: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, var(--color-cyan), var(--color-purple))',
+              background: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'rgba(255,255,255,0.05)' : 'var(--color-purple)',
               color: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'var(--color-text-muted)' : 'white',
-              borderRadius: '12px',
+              borderRadius: '4px',
               fontSize: '1.125rem',
               fontWeight: 700,
               border: `1px solid ${(!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'transparent' : 'rgba(255,255,255,0.2)'}`,
