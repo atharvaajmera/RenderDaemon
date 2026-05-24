@@ -73,7 +73,7 @@ export default function LoginPage() {
           radial-gradient(circle at 50% 50%, var(--color-bg-base) 0%, var(--color-bg-base) 100%)
         `
       }}>
-        <div 
+        <div
           ref={meshRef}
           style={{
             position: 'absolute',
@@ -86,7 +86,7 @@ export default function LoginPage() {
             transition: 'transform 0.1s ease-out'
           }}
         />
-        
+
         {/* Decorative capsules */}
         {[
           { w: '8rem', h: '3rem', rot: '45deg', top: '10%', left: '15%' },
@@ -120,13 +120,13 @@ export default function LoginPage() {
 
       {/* Main Content Container */}
       <main style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 10 }}>
-        
+
         {/* Brand Identity Section */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2.5rem', gap: '1rem' }}>
-          <div style={{ 
-            padding: '0.75rem', 
-            borderRadius: '12px', 
-            background: 'rgba(138, 43, 226, 0.1)', 
+          <div style={{
+            padding: '0.75rem',
+            borderRadius: '12px',
+            background: 'rgba(138, 43, 226, 0.1)',
             border: '1px solid rgba(138, 43, 226, 0.2)',
             backdropFilter: 'blur(12px)'
           }}>
@@ -179,14 +179,14 @@ export default function LoginPage() {
                 fontWeight: 500,
                 letterSpacing: '0.05em'
               }}
-              onMouseEnter={(e) => {
+                onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#2a2a2a';
-              }}
-              onMouseLeave={(e) => {
+                }}
+                onMouseLeave={(e) => {
                   e.currentTarget.style.background = '#201f1f';
-              }}
+                }}
               >
-                {provider === 'GOOGLE' ? <GoogleLogo size={20} weight="bold"/> : <GithubLogo size={20} weight="bold"/>}
+                {provider === 'GOOGLE' ? <GoogleLogo size={20} weight="bold" /> : <GithubLogo size={20} weight="bold" />}
                 <span className="mono-text">{provider}</span>
               </button>
             ))}
@@ -207,8 +207,8 @@ export default function LoginPage() {
                 </label>
                 <div style={{ position: 'relative' }}>
                   <User size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Enter your full name here"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -236,8 +236,8 @@ export default function LoginPage() {
               </label>
               <div style={{ position: 'relative' }}>
                 <At size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="Enter your email here"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -263,16 +263,16 @@ export default function LoginPage() {
                 <label style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
                   Password
                 </label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ 
-                    fontSize: '0.75rem', 
-                    color: 'var(--color-purple)', 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    padding: 0 
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--color-purple)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0
                   }}
                 >
                   {showPassword ? 'HIDE' : 'SHOW'}
@@ -280,8 +280,8 @@ export default function LoginPage() {
               </div>
               <div style={{ position: 'relative' }}>
                 <LockKey size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
+                <input
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password here"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -310,8 +310,8 @@ export default function LoginPage() {
                 </label>
                 <div style={{ position: 'relative' }}>
                   <LockKey size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-                  <input 
-                    type={showPassword ? 'text' : 'password'} 
+                  <input
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Confirm your password here"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -343,7 +343,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button 
+            <button
               type="submit"
               className="login-btn"
               style={{
@@ -370,26 +370,26 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <footer style={{ 
-          marginTop: '2rem', 
-          textAlign: 'center', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '0.75rem', 
-          alignItems: 'center' 
+        <footer style={{
+          marginTop: '2rem',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          alignItems: 'center'
         }}>
           <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>
             {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-            <button 
+            <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              style={{ 
+              style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--color-purple)', 
-                fontWeight: 600, 
-                textDecoration: 'underline', 
-                textUnderlineOffset: '4px', 
+                color: 'var(--color-purple)',
+                fontWeight: 600,
+                textDecoration: 'underline',
+                textUnderlineOffset: '4px',
                 textDecorationColor: 'rgba(138,43,226,0.3)',
                 cursor: 'pointer',
                 padding: 0
@@ -399,12 +399,12 @@ export default function LoginPage() {
             </button>
           </p>
           {!isSignUp && (
-            <Link 
-              href="#" 
-              style={{ 
-                color: 'var(--color-text-secondary)', 
-                fontSize: '0.875rem', 
-                textDecoration: 'underline', 
+            <Link
+              href="#"
+              style={{
+                color: 'var(--color-text-secondary)',
+                fontSize: '0.875rem',
+                textDecoration: 'underline',
                 textUnderlineOffset: '4px',
                 textDecorationColor: 'rgba(255,255,255,0.2)'
               }}
