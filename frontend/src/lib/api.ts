@@ -51,43 +51,54 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
 }
 
 // ---------------------------------------------------------------------------
-// Step 1.2: Job Services
+// Job Types — matches backend api/models.go exactly
 // ---------------------------------------------------------------------------
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
-export interface JobProgress {
+export interface DynamicText {
+  top: string;
+  bottom: string;
+}
+
+export interface Job {
   id: string;
+  task_id?: string;
+  input_video_url: string;
+  output_url: string;
+  template_id: string;
+  dynamic_text: DynamicText;
   status: JobStatus;
   progress: number;
-  message?: string;
-  createdAt: string;
+  error?: string;
+  result?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface JobRequest {
-  id?: string;
-  template: string;
-  inputs: Record<string, any>;
+export interface CreateJobRequest {
+  input_video_url: string;
+  template_id: string;
+  dynamic_text?: DynamicText;
 }
 
-export interface JobResponse {
-  jobId: string;
-  message?: string;
-}
+// ---------------------------------------------------------------------------
+// Job Services
+// ---------------------------------------------------------------------------
 
-export async function submitJob(req: JobRequest): Promise<JobResponse> {
-  return apiFetch<JobResponse>('/jobs', {
+export async function submitJob(req: CreateJobRequest): Promise<Job> {
+  return apiFetch<Job>('/jobs', {
     method: 'POST',
     body: JSON.stringify(req),
   });
 }
 
-export async function getJob(id: string): Promise<JobProgress> {
-  return apiFetch<JobProgress>(`/jobs/${id}`);
+export async function getJob(id: string): Promise<Job> {
+  return apiFetch<Job>(`/jobs/${id}`);
 }
 
-export async function getAllJobs(): Promise<Record<string, JobProgress>> {
-  return apiFetch<Record<string, JobProgress>>('/jobs');
+export async function getAllJobs(): Promise<Job[]> {
+  return apiFetch<Job[]>('/jobs');
 }
 
 export async function cancelJob(id: string): Promise<void> {
@@ -97,11 +108,28 @@ export async function cancelJob(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Step 1.3: Configuration & Upload Services
+// Job Outputs — GET /jobs/{id}/outputs
+// ---------------------------------------------------------------------------
+
+export interface JobOutput {
+  filename: string;
+  size: number;
+  download_url: string;
+}
+
+export async function getJobOutputs(id: string): Promise<JobOutput[]> {
+  return apiFetch<JobOutput[]>(`/jobs/${id}/outputs`);
+}
+
+// ---------------------------------------------------------------------------
+// File Upload — matches backend api/file_handler.go response
 // ---------------------------------------------------------------------------
 
 export interface UploadResponse {
-  tempFilePath: string;
+  file_id: string;
+  filename: string;
+  size: number;
+  path: string;
 }
 
 export async function uploadFile(file: File): Promise<UploadResponse> {
@@ -113,18 +141,61 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Profiles — matches backend internal/config/profiles.go
+// ---------------------------------------------------------------------------
+
 export interface Profile {
   id: string;
   name: string;
   description: string;
   operation: string;
+  extends?: string;
   parameters: Record<string, string>;
   created_at: string;
   updated_at: string;
 }
 
+export async function getProfiles(): Promise<Profile[]> {
+  return apiFetch<Profile[]>('/profiles');
+}
+
+export async function getProfile(id: string): Promise<Profile> {
+  return apiFetch<Profile>(`/profiles/${id}`);
+}
+
+export async function createProfile(profile: {
+  name: string;
+  description: string;
+  operation: string;
+  extends?: string;
+  parameters: Record<string, string>;
+}): Promise<Profile> {
+  return apiFetch<Profile>('/profiles', {
+    method: 'POST',
+    body: JSON.stringify(profile),
+  });
+}
+
+export async function deleteProfile(id: string): Promise<void> {
+  return apiFetch<void>(`/profiles/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Workflows — matches backend internal/config/workflows.go
+// ---------------------------------------------------------------------------
+
+export interface StepCondition {
+  field: string;
+  operator: string;
+  value: string;
+}
+
 export interface WorkflowStep {
   profile_id: string;
+  condition?: StepCondition;
 }
 
 export interface WorkflowStepGroup {
@@ -141,11 +212,41 @@ export interface Workflow {
   updated_at: string;
 }
 
-export async function getProfiles(): Promise<Profile[]> {
-  return apiFetch<Profile[]>('/profiles');
-}
-
 export async function getWorkflows(): Promise<Workflow[]> {
   return apiFetch<Workflow[]>('/workflows');
 }
 
+export async function getWorkflow(id: string): Promise<Workflow> {
+  return apiFetch<Workflow>(`/workflows/${id}`);
+}
+
+export async function createWorkflow(workflow: {
+  name: string;
+  description: string;
+  step_groups: WorkflowStepGroup[];
+}): Promise<Workflow> {
+  return apiFetch<Workflow>('/workflows', {
+    method: 'POST',
+    body: JSON.stringify(workflow),
+  });
+}
+
+export async function deleteWorkflow(id: string): Promise<void> {
+  return apiFetch<void>(`/workflows/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Utility: Map profile operations to human-readable output descriptions
+// ---------------------------------------------------------------------------
+
+export const OPERATION_META: Record<string, { label: string; icon: string; outputType: string }> = {
+  transcode:     { label: 'Video Export',    icon: '🎬', outputType: 'video' },
+  compress:      { label: 'Compressed Video', icon: '📦', outputType: 'video' },
+  scale:         { label: 'Scaled Video',    icon: '📐', outputType: 'video' },
+  extract_audio: { label: 'Audio Track',     icon: '🎵', outputType: 'audio' },
+  thumbnail:     { label: 'Thumbnail',       icon: '🖼️', outputType: 'image' },
+  preview_gif:   { label: 'Preview GIF',     icon: '✨', outputType: 'gif' },
+  watermark:     { label: 'Watermarked Video', icon: '💧', outputType: 'video' },
+};
