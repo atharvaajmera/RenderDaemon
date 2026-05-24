@@ -189,6 +189,70 @@ func LoadDefaultWorkflows(store *WorkflowStore) {
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
+		{
+			ID:          "creator_distribution",
+			Name:        "Creator Distribution",
+			Description: "The full creator package. Compresses for web, then generates thumbnail, audio extract, and animated preview — all in parallel.",
+			StepGroups: []StepGroup{
+				{
+					Parallel: false,
+					Steps: []WorkflowStep{
+						{ProfileID: "social_media"},
+					},
+				},
+				{
+					Parallel: true,
+					Steps: []WorkflowStep{
+						{ProfileID: "thumbnail"},
+						{ProfileID: "audio_mp3"},
+						{ProfileID: "preview_gif"},
+					},
+				},
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			ID:          "quick_share",
+			Name:        "Quick Share",
+			Description: "Fast mobile-optimized export with a thumbnail. Perfect for WhatsApp, Telegram, or quick social sharing.",
+			StepGroups: []StepGroup{
+				{
+					Parallel: true,
+					Steps: []WorkflowStep{
+						{ProfileID: "mobile_optimized"},
+						{ProfileID: "thumbnail"},
+					},
+				},
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			ID:          "full_production",
+			Name:        "Full Production",
+			Description: "Maximum output pipeline. High-quality transcode, then generates compressed version, MP3 audio, AAC audio, thumbnail, and preview GIF — all in parallel.",
+			StepGroups: []StepGroup{
+				{
+					Parallel: false,
+					Steps: []WorkflowStep{
+						{ProfileID: "web_optimized"},
+					},
+				},
+				{
+					Parallel: true,
+					Steps: []WorkflowStep{
+						{ProfileID: "social_media"},
+						{ProfileID: "audio_mp3"},
+						{ProfileID: "audio_aac"},
+						{ProfileID: "thumbnail"},
+						{ProfileID: "preview_gif"},
+					},
+				},
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
 	}
 
 	for _, w := range defaults {
