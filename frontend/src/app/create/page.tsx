@@ -51,7 +51,7 @@ export default function CreateJobPage() {
     setError(null);
     try {
       const res = await uploadFile(file);
-      setUploadedFilePath(res.tempFilePath);
+      setUploadedFilePath(res.path);
     } catch (err: any) {
       setError("Upload failed: " + err.message);
     } finally {
@@ -83,15 +83,12 @@ export default function CreateJobPage() {
 
     try {
       const res = await submitJob({
-        template: selectedTemplate,
-        inputs: {
-          inputPath: uploadedFilePath,
-          topText: topText,
-          bottomText: bottomText
-        }
+        input_video_url: uploadedFilePath,
+        template_id: selectedTemplate,
+        dynamic_text: { top: topText, bottom: bottomText },
       });
       // Redirect to the job tracking page
-      router.push(`/job/${res.jobId}`);
+      router.push(`/job/${res.id}`);
     } catch (err: any) {
       setError("Failed to submit job: " + err.message);
       setIsSubmitting(false);
