@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { FileArrowUp, FilmStrip, Image as ImageIcon, Subtitles, Gif, ArrowRight, ArrowDown } from '@phosphor-icons/react';
+import { FileArrowUpIcon, FilmStripIcon, ImageIcon, SubtitlesIcon, Gif, ArrowRight, ArrowDown } from '@phosphor-icons/react';
+const currentYear = new Date().getFullYear();
 
 export default function LandingPage() {
   return (
@@ -51,7 +52,7 @@ export default function LandingPage() {
             {/* Central Source */}
             <div className="relative z-10 glass-panel p-8 rounded-3xl flex flex-col items-center gap-4 w-48 bg-surface-container-highest/40 glow-border">
               <div className="w-20 h-20 rounded-full bg-primary-container/30 flex items-center justify-center">
-                <FileArrowUp size={36} className="text-primary" weight="fill" />
+                <FileArrowUpIcon size={36} className="text-primary" weight="fill" />
               </div>
               <span className="font-label-sm text-label-sm text-on-surface font-bold uppercase text-center">Original Upload</span>
             </div>
@@ -67,7 +68,7 @@ export default function LandingPage() {
             {/* Outputs Cluster */}
             <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
               <div className="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
-                <FilmStrip size={24} className="text-secondary-container" />
+                <FilmStripIcon size={24} className="text-secondary-container" />
                 <span className="font-label-sm text-label-sm text-on-surface">Compressed Video</span>
               </div>
               <div className="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
@@ -75,7 +76,7 @@ export default function LandingPage() {
                 <span className="font-label-sm text-label-sm text-on-surface">Thumbnail Pack</span>
               </div>
               <div className="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
-                <Subtitles size={24} className="text-tertiary" />
+                <SubtitlesIcon size={24} className="text-tertiary" />
                 <span className="font-label-sm text-label-sm text-on-surface">Subtitle Version</span>
               </div>
               <div className="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
@@ -88,7 +89,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="w-full border-t border-white/10 py-8 text-center mt-12 bg-transparent backdrop-blur-md">
-        <p className="font-label-sm text-label-sm text-on-surface-variant">© 2026 RenderDaemon. Professional Media Automation.</p>
+        <p className="font-label-sm text-label-sm text-on-surface-variant">© {currentYear} RenderDaemon.</p>
       </footer>
     </div>
   );
