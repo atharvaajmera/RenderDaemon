@@ -1,0 +1,217 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RenderDaemon - Premium SaaS Landing Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed": "#07006c",
+                      "on-secondary-container": "#00686f",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "surface-dim": "#131313",
+                      "primary-fixed": "#efdbff",
+                      "secondary": "#d3fbff",
+                      "inverse-primary": "#8422dc",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container-high": "#2a2a2a",
+                      "tertiary-fixed": "#e1e0ff",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "text-dim": "#94A3B8",
+                      "status-success": "#10B981",
+                      "on-error-container": "#ffdad6",
+                      "outline": "#988ca0",
+                      "surface-container": "#201f1f",
+                      "on-secondary-fixed": "#002022",
+                      "surface-bright": "#3a3939",
+                      "primary-fixed-dim": "#dcb8ff",
+                      "on-error": "#690005",
+                      "on-secondary": "#00363a",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "primary": "#dcb8ff",
+                      "outline-variant": "#4c4354",
+                      "on-primary-container": "#eed9ff",
+                      "inverse-surface": "#e5e2e1",
+                      "surface": "#131313",
+                      "surface-variant": "#353534",
+                      "on-surface-variant": "#cfc2d7",
+                      "status-error": "#EF4444",
+                      "primary-container": "#8a2be2",
+                      "surface-glass": "rgba(26, 26, 26, 0.6)",
+                      "secondary-fixed-dim": "#00dbe9",
+                      "tertiary": "#c0c1ff",
+                      "on-primary-fixed": "#2c0051",
+                      "on-tertiary-container": "#e0deff",
+                      "surface-tint": "#dcb8ff",
+                      "background": "#131313",
+                      "secondary-fixed": "#7df4ff",
+                      "tertiary-container": "#4f51dc",
+                      "on-background": "#e5e2e1",
+                      "error-container": "#93000a",
+                      "on-primary": "#480081",
+                      "surface-container-low": "#1c1b1b",
+                      "border-glow": "rgba(0, 240, 255, 0.3)",
+                      "inverse-on-surface": "#313030",
+                      "on-surface": "#e5e2e1",
+                      "error": "#ffb4ab",
+                      "surface-container-highest": "#353534",
+                      "secondary-container": "#00eefc",
+                      "surface-carbon": "#1A1A1A",
+                      "on-tertiary": "#1000a9",
+                      "on-primary-fixed-variant": "#6700b5"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "gutter-mobile": "16px",
+                      "container-max-width": "1280px",
+                      "margin-mobile": "20px",
+                      "unit": "4px",
+                      "gutter-desktop": "24px"
+              },
+              "fontFamily": {
+                      "headline-xl": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-sm": ["JetBrains Mono"],
+                      "code-md": ["JetBrains Mono"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "code-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-surface-glass backdrop-blur-xl border border-white/10;
+            }
+            .glow-effect {
+                box-shadow: 0 0 15px theme('colors.secondary-container');
+            }
+            .glow-border {
+                @apply border border-secondary-container shadow-[0_0_15px_rgba(0,238,252,0.3)];
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container" style="background-image: url('https://lh3.googleusercontent.com/aida/ADBb0uiLkNweclgSdNA49eqhQQ-ZFmn2n59s4LzxIjH5NhaSFuYzF8ZTrdUZ1wDHiIajhjUjbLtj7si0iINlNF3F5R5d2QaxqsVwUBecnAam32kNupFBn7k_lSvK6EiDYut4P0os44Gnn7TWaZWLvm6Vv5Wzs5DhZQNxaJF2mIKHjd-4TTh1Drrc58YXWWD8My3AW5K3wYcDqgK3zCFlh0nKOW4OFJTi347UOuBAWI89iZYADJEmZ7J-iseK8sk'); background-size: cover; background-position: center; background-attachment: fixed;">
+<!-- TopAppBar from JSON -->
+<header class="bg-surface-glass dark:bg-surface-glass text-primary dark:text-primary docked full-width top-0 sticky backdrop-blur-xl border-b border-white/10 shadow-sm flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 z-40">
+<div class="flex items-center gap-3">
+<h1 class="text-headline-md font-headline-md font-bold tracking-tight text-on-surface dark:text-on-surface">RenderDaemon</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-6">
+<!-- Suppressed full nav cluster as this is a landing page context, but keeping login/cta -->
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-sm text-label-sm uppercase" href="#">Login</a>
+</nav>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-label-sm text-label-sm uppercase hover:opacity-90 transition-opacity">
+                Start Rendering
+            </button>
+<div class="hidden md:block w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-white/10">
+<img alt="Creator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKjM7Uw3QCp5T-K_0gOuA3PBnMmhsomzDK7NqMGtT7jiNxHM-_k9KoN6A-YjplvyAQIHFbGhrLji6NrWjRV10gCFQk3xpbYyQ72EyyfP6TDUOLQj9efcOj80yzBQUq-iR3e5lpDcKzv5Du8ArjhxnGNYLgId3TLt7xeYQ6ZBuxBPkJzs9Ch6vgA6pu8yRyjmm9bCR_LwSARFkVi3TfaZxQYexnOXod4J4LLJmSsEavigqkEkINQSRYnPFN6NUvMiv89WEwTU8ZGcg">
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center">
+<!-- Hero Section -->
+<section class="relative w-full min-h-[90vh] flex flex-col items-center justify-center pt-24 pb-16 px-gutter-mobile md:px-gutter-desktop overflow-hidden bg-cover bg-center px-4">
+<!-- Overlay to ensure text readability against background -->
+<div class="relative z-10 max-w-container-max-width w-full flex flex-col items-center text-center space-y-8 mt-12 glass-panel p-8 md:p-16 rounded-[40px] bg-surface-dim/40">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-secondary-container/30 bg-secondary-container/10 mb-4">
+<span class="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_theme('colors.secondary-container')] animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-secondary-container">System V2.4 is Live</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl md:text-[64px] md:leading-[72px] text-on-surface max-w-4xl tracking-tighter">
+                    Render, transform, and <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">automate</span> media workflows.
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                    One upload. Infinite outputs. Production-ready assets in seconds. The sophisticated framework for modern creators.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
+<button class="bg-gradient-to-r from-primary-container to-inverse-primary text-white font-label-sm text-label-sm px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(138,43,226,0.4)] hover:shadow-[0_0_30px_rgba(138,43,226,0.6)] transition-all transform hover:-translate-y-1 uppercase tracking-wider">
+                        Start Creating
+                    </button>
+<button class="glass-panel text-on-surface hover:bg-white/5 font-label-sm text-label-sm px-8 py-4 rounded-xl transition-all uppercase tracking-wider">
+                        Explore Templates
+                    </button>
+</div>
+</div>
+</section>
+<!-- Social Proof/Stats Section -->
+<!-- Visual Value Prop Section: One Upload -> Multi-Output -->
+<section class="w-full max-w-container-max-width mx-auto py-24 px-gutter-mobile md:px-gutter-desktop flex flex-col items-center relative"><div class="text-center mb-16">
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-4 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">One Upload → Multi-Output</h3>
+<p class="font-body-md text-body-md max-w-xl mx-auto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] text-white">Upload your master file once, and let the daemon generate every format your project demands instantly.</p>
+</div>
+<div class="relative w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24">
+<!-- Central Source -->
+<div class="relative z-10 glass-panel p-8 rounded-3xl flex flex-col items-center gap-4 w-48 bg-surface-container-highest/40 glow-border">
+<div class="w-20 h-20 rounded-full bg-primary-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl">upload_file</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-bold uppercase text-center">Original Upload</span>
+</div>
+<!-- Connection Visual (Arrow for mobile/desktop) -->
+<div class="md:hidden">
+<span class="material-symbols-outlined text-secondary-container text-4xl">south</span>
+</div>
+<div class="hidden md:block">
+<span class="material-symbols-outlined text-secondary-container text-5xl">east</span>
+</div>
+<!-- Outputs Cluster -->
+<div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
+<!-- Output Item -->
+<div class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
+<span class="material-symbols-outlined text-secondary-container">movie_edit</span>
+<span class="font-label-sm text-label-sm text-on-surface">Compressed Video</span>
+</div>
+<!-- Output Item -->
+<div class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
+<span class="material-symbols-outlined text-primary">image</span>
+<span class="font-label-sm text-label-sm text-on-surface">Thumbnail Pack</span>
+</div>
+<!-- Output Item -->
+<div class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
+<span class="material-symbols-outlined text-tertiary">subtitles</span>
+<span class="font-label-sm text-label-sm text-on-surface">Subtitle Version</span>
+</div>
+<!-- Output Item -->
+<div class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 hover:bg-surface-variant/40 transition-all transform hover:scale-105">
+<span class="material-symbols-outlined text-secondary-container">gif</span>
+<span class="font-label-sm text-label-sm text-on-surface">Preview GIF</span>
+</div>
+</div>
+</div></section>
+</main>
+<!-- BottomNavBar from JSON (Suppressed for landing page as per 'Semantic Shell' mandate, but included code structure if it were active elsewhere)
+    <nav class="md:hidden bg-surface-glass dark:bg-surface-glass text-secondary-container dark:text-secondary-container docked full-width bottom-0 fixed z-50 rounded-t-xl backdrop-blur-2xl border-t border-white/5 shadow-2xl fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe">
+        ... suppressed ...
+    </nav>
+    -->
+<footer class="w-full border-t border-white/10 py-8 text-center mt-12 bg-transparent backdrop-blur-md">
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 RenderDaemon. Professional Media Automation.</p>
+</footer>
+</body></html>

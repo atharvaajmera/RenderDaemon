@@ -1,82 +1,82 @@
-:root {
-  --color-bg-base: #0F0F0F;
-  --color-bg-surface: rgba(26, 26, 26, 0.8);
-  --color-purple: #8A2BE2;
-  --color-cyan: #00F0FF;
-  --color-cyan-glow: rgba(0, 240, 255, 0.3);
-  --color-cyan-border: rgba(0, 240, 255, 0.5);
-  --color-border: rgba(152, 140, 160, 0.2);
-  --color-text-primary: #e5e2e1;
-  --color-text-secondary: #cfc2d7;
-  --color-text-muted: #94A3B8;
-  --color-success: #10B981;
-  --color-error: #EF4444;
+@import "tailwindcss";
+
+@theme {
+  --color-surface-dim: #131313;
+  --color-primary-fixed: #efdbff;
+  --color-secondary: #d3fbff;
+  --color-inverse-primary: #8422dc;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-high: #2a2a2a;
+  --color-text-dim: #94A3B8;
+  --color-status-success: #10B981;
+  --color-surface-container: #201f1f;
+  --color-surface-bright: #3a3939;
+  --color-primary: #dcb8ff;
+  --color-on-primary-container: #eed9ff;
+  --color-inverse-surface: #e5e2e1;
+  --color-surface: #131313;
+  --color-surface-variant: #353534;
+  --color-on-surface-variant: #cfc2d7;
+  --color-status-error: #EF4444;
+  --color-primary-container: #8a2be2;
+  --color-surface-glass: rgba(26, 26, 26, 0.6);
+  --color-tertiary: #c0c1ff;
+  --color-background: #131313;
+  --color-on-background: #e5e2e1;
+  --color-on-primary: #480081;
+  --color-surface-container-low: #1c1b1b;
+  --color-border-glow: rgba(0, 240, 255, 0.3);
+  --color-on-surface: #e5e2e1;
+  --color-surface-container-highest: #353534;
+  --color-secondary-container: #00eefc;
+
+  --font-inter: "Inter", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+
+  --font-headline-xl: var(--font-inter);
+  --font-headline-lg: var(--font-inter);
+  --font-body-lg: var(--font-inter);
+  --font-headline-md: var(--font-inter);
+  --font-label-sm: var(--font-jetbrains-mono);
+  --font-code-md: var(--font-jetbrains-mono);
+  --font-body-md: var(--font-inter);
+
+  --text-headline-xl: 48px;
+  --text-headline-xl--line-height: 56px;
+  --text-headline-xl--letter-spacing: -0.02em;
+  --text-headline-xl--font-weight: 700;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 500;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@layer utilities {
+  .glass-panel {
+    background-color: var(--color-surface-glass);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .glow-effect {
+    box-shadow: 0 0 15px var(--color-secondary-container);
+  }
+  .glow-border {
+    border: 1px solid var(--color-secondary-container);
+    box-shadow: 0 0 15px rgba(0,238,252,0.3);
+  }
 }
 
-html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  background-color: var(--color-bg-base);
-  color: var(--color-text-primary);
-  font-family: var(--font-inter), sans-serif;
-  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  font-family: inherit;
-  color: inherit;
-}
-
-/* Base layout container */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* Glassmorphic card styling based on the plan */
-.glass-card {
-  background: var(--color-bg-surface);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.active-glow {
-  box-shadow: 0 0 15px var(--color-cyan-glow);
-  border-color: var(--color-cyan-border);
-}
-
-/* JetBrains Mono Typography for telemetry/IDs */
-.mono-text {
-  font-family: var(--font-jetbrains-mono), monospace;
-}
-
-/* Scanning line animation */
 @keyframes scan {
   0% { left: -100%; }
   100% { left: 100%; }
@@ -93,16 +93,11 @@ button {
   left: 0; 
   height: 2px; 
   width: 100%;
-  background: linear-gradient(90deg, transparent, var(--color-cyan), transparent);
+  background: linear-gradient(90deg, transparent, var(--color-secondary-container), transparent);
   animation: scan 2s infinite linear;
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.8); }
-}
-
-@keyframes pulse-frame {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
 }

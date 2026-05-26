@@ -7,7 +7,7 @@ import React from 'react';
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === '/' || pathname.startsWith('/job') || pathname === '/login') {
+  if (pathname === '/' || pathname.startsWith('/job') || pathname === '/login' || pathname === '/dashboard') {
     return <main>{children}</main>;
   }
 

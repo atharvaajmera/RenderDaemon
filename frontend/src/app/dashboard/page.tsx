@@ -2,166 +2,180 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/Card';
-import { StatusChip, JobStatus } from '@/components/StatusChip';
+import { Job, getAllJobs, cancelJob } from '@/lib/api';
 import { ProgressBar } from '@/components/ProgressBar';
-import { PlusIcon, XIcon, TrashIcon } from '@phosphor-icons/react';
-
-interface Job {
-  id: string;
-  template: string;
-  status: JobStatus;
-  progress: number;
-  createdAt: string;
-}
+import { StatusChip } from '@/components/StatusChip';
+import { PlusIcon, XIcon, ArrowRightIcon } from '@phosphor-icons/react';
 
 export default function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data for now, eventually this will fetch from the Go backend.
   useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setJobs([
-        { id: 'job-1234', template: 'Marketing Video', status: 'processing', progress: 45, createdAt: new Date().toISOString() },
-        { id: 'job-5678', template: 'Social Media Reel', status: 'completed', progress: 100, createdAt: new Date(Date.now() - 3600000).toISOString() },
-        { id: 'job-9012', template: 'Tutorial Intro', status: 'pending', progress: 0, createdAt: new Date(Date.now() - 60000).toISOString() },
-        { id: 'job-3456', template: 'Product Showcase', status: 'failed', progress: 12, createdAt: new Date(Date.now() - 7200000).toISOString() },
-      ]);
-      setLoading(false);
-    }, 1000);
+    fetchJobs();
+    
+    const interval = setInterval(() => {
+      fetchJobs(false);
+    }, 3000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const handleCancel = (id: string) => {
-    // Optimistic UI update
+  const fetchJobs = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const data = await getAllJobs();
+      setJobs(data || []);
+    } catch (error) {
+      console.error('Failed to fetch jobs:', error);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  const handleCancel = async (id: string) => {
     setJobs(jobs.map(job => job.id === id ? { ...job, status: 'cancelled' } : job));
+    try {
+      await cancelJob(id);
+      fetchJobs(false);
+    } catch (error) {
+      console.error('Failed to cancel job:', error);
+      fetchJobs(false);
+    }
   };
 
   const activeJobs = jobs.filter(j => j.status === 'processing' || j.status === 'pending').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Render Queue</h2>
-          <p style={{ color: 'var(--color-text-secondary)' }}>Overview of your current and past rendering jobs.</p>
+    <div className="min-h-screen w-full flex flex-col items-center bg-[#0F0F0F] px-4 py-8">
+      
+      {/* Dashboard Wrapper (The "Box" with the colorful background) */}
+      <div className="w-full max-w-[1280px] flex flex-col items-center rounded-[32px] border border-white/10 overflow-hidden shadow-2xl relative pb-16"
+           style={{
+             backgroundImage: "url('https://lh3.googleusercontent.com/aida/ADBb0uiLkNweclgSdNA49eqhQQ-ZFmn2n59s4LzxIjH5NhaSFuYzF8ZTrdUZ1wDHiIajhjUjbLtj7si0iINlNF3F5R5d2QaxqsVwUBecnAam32kNupFBn7k_lSvK6EiDYut4P0os44Gnn7TWaZWLvm6Vv5Wzs5DhZQNxaJF2mIKHjd-4TTh1Drrc58YXWWD8My3AW5K3wYcDqgK3zCFlh0nKOW4OFJTi347UOuBAWI89iZYADJEmZ7J-iseK8sk')",
+             backgroundSize: 'cover',
+             backgroundPosition: 'center',
+           }}>
+           
+        {/* Top Header/Nav inside the box */}
+        <div className="w-full flex justify-between items-center px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md">
+          <h1 className="font-headline-md text-xl font-bold text-white">RenderDaemon</h1>
+          <div className="flex gap-6 items-center">
+            <span className="font-label-sm text-xs text-on-surface-variant tracking-wider uppercase">Login</span>
+            <Link href="/create" className="bg-primary-container text-white text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg">
+              Start Rendering
+            </Link>
+            <div className="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-white/10">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKjM7Uw3QCp5T-K_0gOuA3PBnMmhsomzDK7NqMGtT7jiNxHM-_k9KoN6A-YjplvyAQIHFbGhrLji6NrWjRV10gCFQk3xpbYyQ72EyyfP6TDUOLQj9efcOj80yzBQUq-iR3e5lpDcKzv5Du8ArjhxnGNYLgId3TLt7xeYQ6ZBuxBPkJzs9Ch6vgA6pu8yRyjmm9bCR_LwSARFkVi3TfaZxQYexnOXod4J4LLJmSsEavigqkEkINQSRYnPFN6NUvMiv89WEwTU8ZGcg" alt="Profile" className="w-full h-full object-cover" />
+            </div>
+          </div>
         </div>
-        <Link 
-          href="/create"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'var(--color-purple)',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontWeight: 600,
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 14px 0 rgba(138, 43, 226, 0.39)'
-          }}
-        >
-          <PlusIcon weight="bold" />
-          New Masterpiece
-        </Link>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-        <Card glow={activeJobs > 0}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Active Jobs</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--color-cyan)' }}>{activeJobs}</span>
+        {/* Hero Section matching exactly the Seamless Atmospheric V2 HTML */}
+        <section className="relative w-full flex flex-col items-center justify-center pt-12 pb-12 overflow-hidden px-4 md:px-12">
+          <div className="relative z-10 w-full flex flex-col items-center text-center space-y-8 glass-panel p-8 md:p-16 rounded-[40px] !bg-black/60 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-secondary-container/30 bg-secondary-container/10 mb-4">
+              <span className="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_theme('colors.secondary-container')] animate-pulse"></span>
+              <span className="font-label-sm text-label-sm text-secondary-container">System V2.4 is Live</span>
+            </div>
+            <h2 className="font-headline-xl text-headline-xl md:text-[64px] md:leading-[72px] text-white max-w-4xl tracking-tighter">
+              Render, transform, and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00eefc] to-[#8a2be2]">automate</span> media workflows.
+            </h2>
+            <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+              One upload. Infinite outputs. Production-ready assets in seconds. The sophisticated framework for modern creators.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
+              <Link href="/create" className="bg-[#8a2be2] hover:bg-[#7822c6] text-white font-label-sm text-label-sm px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(138,43,226,0.4)] transition-all uppercase tracking-wider flex items-center gap-2 justify-center">
+                <PlusIcon weight="bold" size={20} />
+                Start Creating
+              </Link>
+              <button className="bg-black/40 hover:bg-black/60 border border-white/10 text-white font-label-sm text-label-sm px-8 py-4 rounded-xl transition-all uppercase tracking-wider">
+                Explore Templates
+              </button>
+            </div>
           </div>
-        </Card>
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Completed Today</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700 }}>{jobs.filter(j => j.status === 'completed').length}</span>
+        </section>
+
+        {/* Metrics & Queue Section */}
+        <div className="w-full flex flex-col gap-12 px-4 md:px-12">
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className={`glass-panel p-8 rounded-3xl flex flex-col ${activeJobs > 0 ? 'glow-border' : ''}`}>
+            <span className="font-label-sm text-label-sm text-secondary-container uppercase mb-2">Active Processes</span>
+            <span className="font-headline-xl text-5xl font-bold text-white">{activeJobs}</span>
           </div>
-        </Card>
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Jobs</span>
-            <span className="mono-text" style={{ fontSize: '2.5rem', fontWeight: 700 }}>{jobs.length}</span>
+          <div className="glass-panel p-8 rounded-3xl flex flex-col">
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Completed Today</span>
+            <span className="font-headline-xl text-5xl font-bold text-white">{jobs.filter(j => j.status === 'completed').length}</span>
           </div>
-        </Card>
-      </div>
-
-      <Card>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Recent Jobs</h3>
-        
-        {loading ? (
-          <div className="scanner-bar-container" style={{ height: '2px', background: 'var(--color-bg-base)', borderRadius: '2px' }}>
-            <div className="scanner-bar" />
+          <div className="glass-panel p-8 rounded-3xl flex flex-col">
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Total Jobs</span>
+            <span className="font-headline-xl text-5xl font-bold text-white">{jobs.length}</span>
           </div>
-        ) : jobs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-            No jobs found. Create one to get started!
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {jobs.map(job => (
-              <div 
-                key={job.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--color-border)'
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: 600 }}>{job.template}</span>
-                  <Link href={job.status === 'completed' ? `/share/${job.id}` : `/job/${job.id}`} className="mono-text" style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textDecoration: 'underline' }}>
-                    {job.id}
-                  </Link>
-                </div>
+        </div>
 
-                <div style={{ width: '100%' }}>
-                  <ProgressBar progress={job.progress} label={job.status === 'processing' ? 'Rendering...' : undefined} />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <StatusChip status={job.status} />
-                </div>
-
-                <div className="mono-text" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
-                  {new Date(job.createdAt).toLocaleTimeString()}
-                </div>
-
-                <div>
-                  {(job.status === 'processing' || job.status === 'pending') && (
-                    <button 
-                      onClick={() => handleCancel(job.id)}
-                      style={{ 
-                        padding: '0.5rem', 
-                        color: 'var(--color-text-secondary)',
-                        transition: 'color 0.2s',
-                        borderRadius: '4px'
-                      }}
-                      onMouseOver={e => e.currentTarget.style.color = 'var(--color-error)'}
-                      onMouseOut={e => e.currentTarget.style.color = 'var(--color-text-secondary)'}
-                      title="Cancel Job"
-                    >
-                      <XIcon weight="bold" size={20} />
-                    </button>
-                  )}
-                  {job.status === 'completed' && (
-                    <Link href={`/share/${job.id}`} style={{ padding: '0.5rem', color: 'var(--color-cyan)' }}>
-                      View
+        {/* Job List */}
+        <div className="glass-panel p-8 rounded-[32px]">
+          <h3 className="font-headline-md text-2xl font-bold text-white mb-8">Queue Status</h3>
+          
+          {loading && jobs.length === 0 ? (
+            <div className="scanner-bar-container h-[2px] bg-white/10 rounded-full">
+              <div className="scanner-bar"></div>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-16 text-on-surface-variant font-body-lg">
+              No jobs found. The daemon is waiting.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {jobs.map(job => (
+                <div 
+                  key={job.id}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr_1fr_auto] items-center gap-4 p-6 glass-panel !bg-white/5 rounded-2xl hover:!bg-white/10 transition-all hover:-translate-y-1"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-bold text-white">{job.template_id}</span>
+                    <Link href={`/job/${job.id}`} className="font-label-sm text-xs text-on-surface-variant hover:text-secondary-container transition-colors">
+                      {job.id.substring(0, 8)}...
                     </Link>
-                  )}
+                  </div>
+
+                  <div className="w-full">
+                    <ProgressBar progress={job.progress} label={job.status === 'processing' ? 'Rendering...' : undefined} />
+                  </div>
+
+                  <div className="flex justify-center">
+                    <StatusChip status={job.status} />
+                  </div>
+
+                  <div className="font-label-sm text-sm text-on-surface-variant text-right">
+                    {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+
+                  <div className="flex items-center gap-2 justify-end">
+                    {(job.status === 'processing' || job.status === 'pending') && (
+                      <button 
+                        onClick={() => handleCancel(job.id)}
+                        className="p-2 text-on-surface-variant hover:text-status-error transition-colors rounded-lg"
+                        title="Cancel Job"
+                      >
+                        <XIcon weight="bold" size={20} />
+                      </button>
+                    )}
+                    <Link 
+                      href={`/job/${job.id}`} 
+                      className="p-2 text-secondary-container bg-secondary-container/10 hover:bg-secondary-container/20 rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      <ArrowRightIcon weight="bold" size={20} />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+              ))}
+            </div>
+          )}
+        </div>
+        </div>
+      </div>
     </div>
   );
 }
