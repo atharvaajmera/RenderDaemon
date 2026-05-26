@@ -57,19 +57,6 @@ export default function Dashboard() {
              backgroundPosition: 'center',
            }}>
            
-        {/* Top Header/Nav inside the box */}
-        <div className="w-full flex justify-between items-center px-8 py-6 mx-4 md:mx-8 border-b border-white/10 bg-black/20 backdrop-blur-md">
-          <h1 className="font-headline-md text-xl font-bold text-white">RenderDaemon</h1>
-          <div className="flex gap-6 items-center">
-            <span className="font-label-sm text-xs text-on-surface-variant tracking-wider uppercase">Login</span>
-            <Link href="/create" className="bg-primary-container text-white text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg">
-              Start Rendering
-            </Link>
-            <div className="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-white/10">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKjM7Uw3QCp5T-K_0gOuA3PBnMmhsomzDK7NqMGtT7jiNxHM-_k9KoN6A-YjplvyAQIHFbGhrLji6NrWjRV10gCFQk3xpbYyQ72EyyfP6TDUOLQj9efcOj80yzBQUq-iR3e5lpDcKzv5Du8ArjhxnGNYLgId3TLt7xeYQ6ZBuxBPkJzs9Ch6vgA6pu8yRyjmm9bCR_LwSARFkVi3TfaZxQYexnOXod4J4LLJmSsEavigqkEkINQSRYnPFN6NUvMiv89WEwTU8ZGcg" alt="Profile" className="w-full h-full object-cover" />
-            </div>
-          </div>
-        </div>
 
         {/* Hero Section matching exactly the Seamless Atmospheric V2 HTML */}
         <section className="relative w-full flex flex-col items-center justify-center pt-12 pb-12 overflow-hidden px-4 md:px-12">

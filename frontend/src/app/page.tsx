@@ -14,23 +14,6 @@ export default function LandingPage() {
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* TopAppBar from JSON */}
-      <header className="bg-surface-glass dark:bg-surface-glass text-primary dark:text-primary docked full-width top-0 sticky backdrop-blur-xl border-b border-white/10 shadow-sm flex justify-between items-center w-full px-5 md:px-10 h-16 z-40">
-        <div className="flex items-center gap-3">
-          <h1 className="text-headline-md font-headline-md font-bold tracking-tight text-on-surface dark:text-on-surface">RenderDaemon</h1>
-        </div>
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex gap-6">
-            <Link className="text-on-surface-variant hover:text-on-surface transition-colors font-label-sm text-label-sm uppercase" href="/dashboard">Login</Link>
-          </nav>
-          <Link href="/create" className="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-label-sm text-label-sm uppercase hover:opacity-90 transition-opacity">
-            Start Rendering
-          </Link>
-          <div className="hidden md:block w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-white/10">
-            <img alt="Creator Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKjM7Uw3QCp5T-K_0gOuA3PBnMmhsomzDK7NqMGtT7jiNxHM-_k9KoN6A-YjplvyAQIHFbGhrLji6NrWjRV10gCFQk3xpbYyQ72EyyfP6TDUOLQj9efcOj80yzBQUq-iR3e5lpDcKzv5Du8ArjhxnGNYLgId3TLt7xeYQ6ZBuxBPkJzs9Ch6vgA6pu8yRyjmm9bCR_LwSARFkVi3TfaZxQYexnOXod4J4LLJmSsEavigqkEkINQSRYnPFN6NUvMiv89WEwTU8ZGcg" />
-          </div>
-        </div>
-      </header>
 
       <main className="flex-grow flex flex-col items-center">
         {/* Hero Section */}

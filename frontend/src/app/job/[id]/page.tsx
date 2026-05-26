@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Person, Scan, XCircle } from '@phosphor-icons/react';
+import { Scan, XCircle } from '@phosphor-icons/react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -108,44 +108,7 @@ export default function JobProgressPage({ params }: { params: Promise<{ id: stri
         backgroundSize: '100% 4px, 3px 100%'
       }}></div>
 
-      {/* Top App Bar */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        width: '100%',
-        height: '64px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 2rem',
-        background: 'rgba(26, 26, 26, 0.6)',
-        backdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.9, textDecoration: 'none', color: 'inherit' }}>
-          <Scan size={24} weight="bold" color="var(--color-cyan)" />
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em' }}>RenderDaemon</h1>
-        </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span className="mono-text" style={{ fontSize: '0.875rem', opacity: 0.5 }}>
-            JOB_ID: {displayId}
-          </span>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: '#1A1A1A',
-            border: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Person size={16} color="rgba(255,255,255,0.7)" />
-          </div>
-        </div>
-      </header>
 
       {/* Main Canvas Container */}
       <main style={{
