@@ -15,7 +15,7 @@ export default function LandingPage() {
       }}
     >
       {/* TopAppBar from JSON */}
-      <header className="bg-surface-glass dark:bg-surface-glass text-primary dark:text-primary docked full-width top-0 sticky backdrop-blur-xl border-b border-white/10 shadow-sm flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 z-40">
+      <header className="bg-surface-glass dark:bg-surface-glass text-primary dark:text-primary docked full-width top-0 sticky backdrop-blur-xl border-b border-white/10 shadow-sm flex justify-between items-center w-full px-5 md:px-10 h-16 z-40">
         <div className="flex items-center gap-3">
           <h1 className="text-headline-md font-headline-md font-bold tracking-tight text-on-surface dark:text-on-surface">RenderDaemon</h1>
         </div>

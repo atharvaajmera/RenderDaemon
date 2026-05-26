@@ -58,7 +58,7 @@ export default function Dashboard() {
            }}>
            
         {/* Top Header/Nav inside the box */}
-        <div className="w-full flex justify-between items-center px-8 py-6 border-b border-white/10 bg-black/20 backdrop-blur-md">
+        <div className="w-full flex justify-between items-center px-8 py-6 mx-4 md:mx-8 border-b border-white/10 bg-black/20 backdrop-blur-md">
           <h1 className="font-headline-md text-xl font-bold text-white">RenderDaemon</h1>
           <div className="flex gap-6 items-center">
             <span className="font-label-sm text-xs text-on-surface-variant tracking-wider uppercase">Login</span>
