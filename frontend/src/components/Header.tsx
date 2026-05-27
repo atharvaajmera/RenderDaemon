@@ -1,105 +1,51 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { List, House, FilmStrip, ListDashes, Gear, SignOut, X } from '@phosphor-icons/react';
 
 const PROFILE_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuCKjM7Uw3QCp5T-K_0gOuA3PBnMmhsomzDK7NqMGtT7jiNxHM-_k9KoN6A-YjplvyAQIHFbGhrLji6NrWjRV10gCFQk3xpbYyQ72EyyfP6TDUOLQj9efcOj80yzBQUq-iR3e5lpDcKzv5Du8ArjhxnGNYLgId3TLt7xeYQ6ZBuxBPkJzs9Ch6vgA6pu8yRyjmm9bCR_LwSARFkVi3TfaZxQYexnOXod4J4LLJmSsEavigqkEkINQSRYnPFN6NUvMiv89WEwTU8ZGcg";
 
 const NAV_LINKS = [
-  { href: '/', label: 'Home', icon: House },
-  { href: '/dashboard', label: 'Dashboard', icon: ListDashes },
-  { href: '/create', label: 'Create Masterpiece', icon: FilmStrip },
-  { href: '/config', label: 'Configuration', icon: Gear },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/create', label: 'Create' },
+  { href: '/config', label: 'Config' },
 ];
 
 export function Header() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Close on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   return (
-    <header className="bg-surface-glass sticky top-0 z-50 backdrop-blur-xl border-b border-white/10 shadow-sm flex justify-between items-center w-full px-5 md:px-10 h-16">
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 no-underline">
-        <h1 className="text-xl font-bold tracking-tight text-on-surface">RenderDaemon</h1>
-      </Link>
+    <header className="bg-surface-glass sticky top-0 z-50 backdrop-blur-xl border-b border-white/10 shadow-sm flex items-center w-full px-5 md:px-10 h-14">
+      {/* Left: Logo + Nav links */}
+      <div className="flex items-center gap-6">
+        <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
+          <h1 className="text-lg font-bold tracking-tight text-on-surface">RenderDaemon</h1>
+        </Link>
 
-      {/* Right side: menu dropdown + profile */}
-      <div className="flex items-center gap-3">
-        {/* Navigation dropdown */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all text-on-surface-variant hover:text-on-surface hover:bg-white/5"
-            aria-label="Navigation menu"
-          >
-            {menuOpen ? (
-              <X size={20} weight="bold" />
-            ) : (
-              <List size={20} weight="bold" />
-            )}
-          </button>
+        <nav className="flex items-center gap-1">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  isActive
+                    ? 'text-on-surface font-semibold bg-white/8'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
-          {/* Dropdown */}
-          {menuOpen && (
-            <div
-              className="absolute right-0 top-12 w-60 rounded-xl overflow-hidden border border-white/10 shadow-2xl z-50"
-              style={{
-                background: 'rgba(20, 20, 28, 0.95)',
-                backdropFilter: 'blur(24px)',
-              }}
-            >
-              <div className="py-1">
-                {NAV_LINKS.map((link) => {
-                  const isActive = pathname === link.href;
-                  const Icon = link.icon;
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                        isActive
-                          ? 'text-secondary-container bg-secondary-container/10'
-                          : 'text-on-surface-variant hover:text-on-surface hover:bg-white/5'
-                      }`}
-                    >
-                      <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="py-1 border-t border-white/10">
-                <button className="flex items-center gap-3 px-4 py-3 text-sm text-status-error hover:bg-status-error/10 w-full transition-colors">
-                  <SignOut size={18} />
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Profile avatar */}
-        <div className="w-9 h-9 rounded-full bg-surface-variant overflow-hidden border border-white/10 shrink-0">
+      {/* Right: Profile avatar */}
+      <div className="ml-auto">
+        <div className="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-white/10 shrink-0 cursor-pointer hover:ring-2 hover:ring-primary-container/50 transition-all">
           <img
             alt="Creator Profile"
             className="w-full h-full object-cover"

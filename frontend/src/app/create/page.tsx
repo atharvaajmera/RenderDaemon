@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProfiles, getWorkflows, uploadFile, submitJob, Profile, Workflow, OPERATION_META } from '@/lib/api';
-import { Card } from '@/components/Card';
 import { UploadSimple, FilmStrip, PaperPlaneRight, CircleNotch, CheckCircle, Image as ImageIcon, FileAudio, FileVideo, MagicWand, Stack } from '@phosphor-icons/react';
 
 export default function CreateJobPage() {
@@ -83,10 +82,8 @@ export default function CreateJobPage() {
       const res = await submitJob({
         input_video_url: uploadedFilePath,
         template_id: selectedTemplate,
-        // Passing empty strings for now as they are less relevant for the pure goal-based flow.
         dynamic_text: { top: '', bottom: '' }, 
       });
-      // Redirect to the job tracking page
       router.push(`/job/${res.id}`);
     } catch (err: any) {
       setError("Failed to submit job: " + err.message);
@@ -102,11 +99,11 @@ export default function CreateJobPage() {
     
     const getIconForType = (type: string) => {
       switch(type) {
-        case 'video': return <FileVideo size={24} color="var(--color-cyan)" />;
-        case 'audio': return <FileAudio size={24} color="var(--color-purple)" />;
-        case 'image': return <ImageIcon size={24} color="#00dbe9" />;
-        case 'gif': return <MagicWand size={24} color="#b172fa" />;
-        default: return <FilmStrip size={24} />;
+        case 'video': return <FileVideo size={20} className="text-secondary-container" />;
+        case 'audio': return <FileAudio size={20} className="text-primary" />;
+        case 'image': return <ImageIcon size={20} className="text-tertiary" />;
+        case 'gif': return <MagicWand size={20} className="text-primary-container" />;
+        default: return <FilmStrip size={20} className="text-on-surface-variant" />;
       }
     };
 
@@ -136,226 +133,191 @@ export default function CreateJobPage() {
     return outputs;
   }, [selectedTemplate, workflows, profiles]);
 
+  const isReady = uploadedFilePath && selectedTemplate && !isSubmitting;
+
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div>
-        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <FilmStrip color="var(--color-purple)" /> Create Masterpiece
-        </h2>
-        <p style={{ color: 'var(--color-text-secondary)' }}>
-          Upload your raw video, select your goal, and let the daemon generate all required outputs.
-        </p>
-      </div>
+    <div className="min-h-screen w-full flex flex-col items-center bg-[#0F0F0F] px-4 py-8">
 
-      {error && (
-        <Card>
-          <div style={{ color: 'var(--color-error)', fontWeight: 600 }}>{error}</div>
-        </Card>
-      )}
+      {/* Page Wrapper */}
+      <div
+        className="w-full max-w-[1280px] flex flex-col rounded-[32px] border border-white/10 overflow-hidden shadow-2xl relative pb-12"
+        style={{
+          backgroundImage: "url('https://lh3.googleusercontent.com/aida/ADBb0uiLkNweclgSdNA49eqhQQ-ZFmn2n59s4LzxIjH5NhaSFuYzF8ZTrdUZ1wDHiIajhjUjbLtj7si0iINlNF3F5R5d2QaxqsVwUBecnAam32kNupFBn7k_lSvK6EiDYut4P0os44Gnn7TWaZWLvm6Vv5Wzs5DhZQNxaJF2mIKHjd-4TTh1Drrc58YXWWD8My3AW5K3wYcDqgK3zCFlh0nKOW4OFJTi347UOuBAWI89iZYADJEmZ7J-iseK8sk')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        
-        {/* Step 1: Upload */}
-        <section>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0, 240, 255, 0.1)', color: 'var(--color-cyan)', fontSize: '0.875rem', fontWeight: 'bold' }}>1</span>
-            Source Media
-          </h3>
-          <Card>
+        {/* Page Header */}
+        <div className="w-full px-6 md:px-12 pt-10 pb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight flex items-center gap-3">
+            <FilmStrip size={32} className="text-primary-container" weight="duotone" />
+            Create Masterpiece
+          </h2>
+          <p className="text-on-surface-variant mt-2 text-base max-w-xl">
+            Upload your raw video, select your goal, and let the daemon generate all required outputs.
+          </p>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mx-6 md:mx-12 mb-6 glass-panel !border-status-error/30 rounded-2xl px-6 py-4">
+            <span className="text-status-error font-semibold text-sm">{error}</span>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-6 md:px-12">
+
+          {/* Step 1: Upload */}
+          <section>
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary-container/15 text-secondary-container text-xs font-bold">1</span>
+              Source Media
+            </h3>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => !uploadedFilePath && !isUploading && fileInputRef.current?.click()}
-              style={{
-                border: `2px dashed ${isDragging ? 'var(--color-cyan)' : 'rgba(255, 255, 255, 0.1)'}`,
-                borderRadius: '8px',
-                padding: '3rem 2rem',
-                textAlign: 'center',
-                backgroundColor: isDragging ? 'rgba(0, 240, 255, 0.02)' : 'rgba(0, 0, 0, 0.2)',
-                cursor: (uploadedFilePath || isUploading) ? 'default' : 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem'
-              }}
+              className={`glass-panel rounded-2xl p-8 md:p-12 flex flex-col items-center gap-4 text-center transition-all cursor-pointer ${
+                isDragging
+                  ? '!border-secondary-container/60 !bg-secondary-container/5'
+                  : uploadedFilePath
+                    ? '!border-status-success/30 cursor-default'
+                    : 'hover:!border-white/20'
+              }`}
             >
               <input 
                 type="file" 
                 accept="video/*" 
                 ref={fileInputRef} 
-                style={{ display: 'none' }} 
+                className="hidden" 
                 onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
               />
 
               {isUploading ? (
                 <>
-                  <CircleNotch size={48} color="var(--color-cyan)" className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
-                  <span style={{ color: 'var(--color-cyan)', fontWeight: 600 }}>Ingesting Media...</span>
+                  <CircleNotch size={48} className="text-secondary-container animate-spin" />
+                  <span className="text-secondary-container font-semibold">Ingesting Media...</span>
                 </>
               ) : uploadedFilePath ? (
                 <>
-                  <div style={{ position: 'relative' }}>
-                    <FilmStrip size={48} color="var(--color-success)" />
-                    <CheckCircle size={20} color="var(--color-bg-base)" weight="fill" style={{ position: 'absolute', bottom: -4, right: -4, background: 'var(--color-success)', borderRadius: '50%' }} />
+                  <div className="relative">
+                    <FilmStrip size={48} className="text-status-success" />
+                    <CheckCircle size={20} weight="fill" className="text-status-success absolute -bottom-1 -right-1" />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: 'var(--color-success)', fontWeight: 600, fontSize: '1.125rem' }}>Upload Ready</span>
-                    <span className="mono-text" style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{uploadedFilePath}</span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-status-success font-semibold text-lg">Upload Ready</span>
+                    <span className="font-label-sm text-label-sm text-on-surface-variant mt-1">{uploadedFilePath}</span>
                   </div>
                   <button 
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setUploadedFilePath(null); }}
-                    style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'underline', transition: 'color 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.color = 'var(--color-error)'}
-                    onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
+                    className="text-on-surface-variant text-sm underline hover:text-status-error transition-colors mt-1"
                   >
-                    Remove & Replace
+                    Remove &amp; Replace
                   </button>
                 </>
               ) : (
                 <>
-                  <UploadSimple size={48} color="var(--color-text-muted)" />
+                  <UploadSimple size={48} className="text-on-surface-variant" />
                   <div>
-                    <span style={{ fontSize: '1.125rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Drag & Drop master video here</span>
-                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>or click to browse local files</span>
+                    <span className="text-lg font-semibold text-on-surface block mb-1">Drag & Drop master video here</span>
+                    <span className="text-on-surface-variant text-sm">or click to browse local files</span>
                   </div>
                 </>
               )}
-              <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
             </div>
-          </Card>
-        </section>
-
-        {/* Step 2: Choose Goal */}
-        <section style={{ opacity: uploadedFilePath ? 1 : 0.5, transition: 'opacity 0.3s' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(138, 43, 226, 0.1)', color: 'var(--color-purple)', fontSize: '0.875rem', fontWeight: 'bold' }}>2</span>
-            Select Goal
-          </h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-            {workflows.map(wf => (
-              <div 
-                key={wf.id}
-                onClick={() => uploadedFilePath && setSelectedTemplate(wf.id)}
-                style={{
-                  background: selectedTemplate === wf.id ? 'rgba(0, 240, 255, 0.08)' : 'rgba(20, 20, 28, 0.5)',
-                  border: `1px solid ${selectedTemplate === wf.id ? 'var(--color-cyan)' : 'rgba(255, 255, 255, 0.08)'}`,
-                  borderRadius: '8px',
-                  padding: '1.25rem',
-                  cursor: uploadedFilePath ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: selectedTemplate === wf.id ? '0 0 20px rgba(0, 240, 255, 0.15)' : 'none'
-                }}
-                onMouseOver={(e) => {
-                  if (uploadedFilePath && selectedTemplate !== wf.id) {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (uploadedFilePath && selectedTemplate !== wf.id) {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }
-                }}
-              >
-                {selectedTemplate === wf.id && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--color-cyan)' }} />
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <Stack size={24} color={selectedTemplate === wf.id ? 'var(--color-cyan)' : 'var(--color-text-muted)'} />
-                  <h4 style={{ fontSize: '1.125rem', fontWeight: 600, color: selectedTemplate === wf.id ? 'white' : 'var(--color-text-primary)' }}>{wf.name}</h4>
-                </div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{wf.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Step 3: Expected Outputs Preview */}
-        {selectedTemplate && expectedOutputs.length > 0 && (
-          <section style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0, 230, 118, 0.1)', color: 'var(--color-success)', fontSize: '0.875rem', fontWeight: 'bold' }}>3</span>
-              Expected Outputs
-            </h3>
-            <Card glow={true}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                {expectedOutputs.map((output, idx) => (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.05)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
-                      {output.icon}
-                    </div>
-                    <span className="mono-text" style={{ fontSize: '0.875rem', fontWeight: 500 }}>{output.label}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-            <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
           </section>
-        )}
 
-        {/* Submit */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-          <button 
-            type="submit"
-            disabled={!uploadedFilePath || !selectedTemplate || isSubmitting}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '1rem 2.5rem',
-              background: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'rgba(255,255,255,0.05)' : 'var(--color-purple)',
-              color: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'var(--color-text-muted)' : 'white',
-              borderRadius: '4px',
-              fontSize: '1.125rem',
-              fontWeight: 700,
-              border: `1px solid ${(!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'transparent' : 'rgba(255,255,255,0.2)'}`,
-              cursor: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: (!uploadedFilePath || !selectedTemplate || isSubmitting) ? 'none' : '0 10px 30px -10px rgba(0, 240, 255, 0.5)'
-            }}
-            onMouseOver={(e) => {
-              if (uploadedFilePath && selectedTemplate && !isSubmitting) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 15px 35px -10px rgba(0, 240, 255, 0.6)';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (uploadedFilePath && selectedTemplate && !isSubmitting) {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(0, 240, 255, 0.5)';
-              }
-            }}
-          >
-            {isSubmitting ? (
-              <>
-                <CircleNotch size={24} className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
-                Submitting Pipeline...
-              </>
-            ) : (
-              <>
-                <PaperPlaneRight size={24} weight="bold" />
-                Render Outputs
-              </>
-            )}
-          </button>
-        </div>
+          {/* Step 2: Choose Goal */}
+          <section className={`transition-opacity duration-300 ${uploadedFilePath ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-container/20 text-primary-container text-xs font-bold">2</span>
+              Select Goal
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {workflows.map(wf => {
+                const isSelected = selectedTemplate === wf.id;
+                return (
+                  <div 
+                    key={wf.id}
+                    onClick={() => uploadedFilePath && setSelectedTemplate(wf.id)}
+                    className={`glass-panel rounded-2xl p-5 cursor-pointer transition-all relative overflow-hidden group ${
+                      isSelected
+                        ? '!border-secondary-container/50 !bg-secondary-container/10 shadow-[0_0_20px_rgba(0,238,252,0.1)]'
+                        : 'hover:!border-white/20 hover:-translate-y-0.5'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="absolute top-0 left-0 w-1 h-full bg-secondary-container" />
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <Stack size={22} className={isSelected ? 'text-secondary-container' : 'text-on-surface-variant'} />
+                      <h4 className={`text-base font-semibold ${isSelected ? 'text-white' : 'text-on-surface'}`}>{wf.name}</h4>
+                    </div>
+                    <p className="text-sm text-on-surface-variant leading-relaxed">{wf.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
-      </form>
+          {/* Step 3: Expected Outputs Preview */}
+          {selectedTemplate && expectedOutputs.length > 0 && (
+            <section className="animate-[fadeIn_0.3s_ease]">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-status-success/15 text-status-success text-xs font-bold">3</span>
+                Expected Outputs
+              </h3>
+              <div className="glass-panel glow-border rounded-2xl p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {expectedOutputs.map((output, idx) => (
+                    <div key={idx} className="flex items-center gap-3 glass-panel !bg-white/5 rounded-xl px-4 py-3">
+                      <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                        {output.icon}
+                      </div>
+                      <span className="font-label-sm text-label-sm text-on-surface">{output.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Submit */}
+          <div className="flex justify-end mt-2 pb-2">
+            <button 
+              type="submit"
+              disabled={!isReady}
+              className={`flex items-center gap-3 px-8 py-4 rounded-xl text-base font-bold uppercase tracking-wider transition-all ${
+                isReady
+                  ? 'bg-gradient-to-r from-primary-container to-inverse-primary text-white shadow-[0_0_20px_rgba(138,43,226,0.4)] hover:shadow-[0_0_30px_rgba(138,43,226,0.6)] hover:-translate-y-0.5'
+                  : 'bg-white/5 text-on-surface-variant border border-transparent cursor-not-allowed'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <CircleNotch size={22} className="animate-spin" />
+                  Submitting Pipeline...
+                </>
+              ) : (
+                <>
+                  <PaperPlaneRight size={22} weight="bold" />
+                  Render Outputs
+                </>
+              )}
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }

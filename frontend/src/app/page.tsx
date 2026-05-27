@@ -21,10 +21,10 @@ export default function LandingPage() {
         <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center pt-24 pb-16 px-gutter-mobile md:px-gutter-desktop overflow-hidden bg-cover bg-center px-4">
           {/* Overlay to ensure text readability against background */}
           <div className="relative z-10 max-w-container-max-width w-full flex flex-col items-center text-center space-y-8 mt-12 glass-panel p-8 md:p-16 rounded-[40px] bg-surface-dim/40">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-secondary-container/30 bg-secondary-container/10 mb-4">
+            {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-secondary-container/30 bg-secondary-container/10 mb-4">
               <span className="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_theme('colors.secondary-container')] animate-pulse"></span>
               <span className="font-label-sm text-label-sm text-secondary-container">System V2.4 is Live</span>
-            </div>
+            </div> */}
             <h2 className="font-headline-xl text-headline-xl md:text-[64px] md:leading-[72px] text-on-surface max-w-4xl tracking-tighter">
               Render, transform, and <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">automate</span> media workflows.
             </h2>
@@ -89,7 +89,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="w-full border-t border-white/10 py-8 text-center mt-12 bg-transparent backdrop-blur-md">
-        <p className="font-label-sm text-label-sm text-on-surface-variant">© {currentYear} RenderDaemon.</p>
+        <p className="font-label-sm text-label-sm text-on-surface-variant">© {currentYear} RenderDaemon</p>
       </footer>
     </div>
   );
