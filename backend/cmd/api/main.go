@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 	"github.com/joho/godotenv"
 	"render-queue/api"
 	"render-queue/internal/config"
+	"render-queue/internal/db"
+	"render-queue/internal/repository"
 )
 
 func enableCORS(next http.Handler) http.Handler {
@@ -33,15 +36,27 @@ func main() {
 	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
 	apiPort := os.Getenv("API_PORT")
 
+	ctx := context.Background()
+	databaseURL := os.Getenv("DATABASE_URL")
+	pool, err := db.Connect(ctx, databaseURL)
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+	defer pool.Close()
+
+	if err := db.RunMigrations(ctx, pool); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
+
 	queueClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 	defer queueClient.Close()
 
 	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: redisAddr})
 	defer inspector.Close()
 
-	store := api.NewJobStore()
+	repo := repository.NewPostgresJobRepository(pool)
 	cfg := config.NewConfigManager()
-	handler := api.NewHandler(store, cfg, queueClient, inspector)
+	handler := api.NewHandler(repo, cfg, queueClient, inspector)
 
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)

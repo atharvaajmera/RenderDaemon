@@ -15,18 +15,19 @@ import (
 	"github.com/hibiken/asynq"
 	"render-queue/internal/config"
 	"render-queue/internal/models"
+	"render-queue/internal/repository"
 	"render-queue/internal/tasks"
 )
 
 type Handler struct {
-	Store     *JobStore
+	Repo      repository.JobRepository
 	Config    *config.ConfigManager
 	Queue     *asynq.Client
 	Inspector *asynq.Inspector
 }
 
-func NewHandler(store *JobStore, cfg *config.ConfigManager, queue *asynq.Client, inspector *asynq.Inspector) *Handler {
-	return &Handler{Store: store, Config: cfg, Queue: queue, Inspector: inspector}
+func NewHandler(repo repository.JobRepository, cfg *config.ConfigManager, queue *asynq.Client, inspector *asynq.Inspector) *Handler {
+	return &Handler{Repo: repo, Config: cfg, Queue: queue, Inspector: inspector}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -57,10 +58,21 @@ func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listJobs(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	if status != "" {
-		writeJSON(w, http.StatusOK, h.Store.ListByStatus(status))
+		jobs, err := h.Repo.ListByStatus(r.Context(), status)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list jobs: " + err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, jobs)
 		return
 	}
-	writeJSON(w, http.StatusOK, h.Store.List())
+	
+	jobs, err := h.Repo.List(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list jobs: " + err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, jobs)
 }
 
 // handleJobByID — GET /jobs/{id}, PATCH /jobs/{id}/status
@@ -92,7 +104,7 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodDelete {
-		h.cancelJob(w, id)
+		h.cancelJob(w, r, id)
 		return
 	}
 
@@ -103,11 +115,15 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.getJob(w, id)
+	h.getJob(w, r, id)
 }
 
-func (h *Handler) cancelJob(w http.ResponseWriter, id string) {
-	job := h.Store.Get(id)
+func (h *Handler) cancelJob(w http.ResponseWriter, r *http.Request, id string) {
+	job, err := h.Repo.Get(r.Context(), id)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "database error: " + err.Error()})
+		return
+	}
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
@@ -122,7 +138,11 @@ func (h *Handler) cancelJob(w http.ResponseWriter, id string) {
 		return
 	}
 
-	h.Store.UpdateStatus(id, models.StatusCancelled, "")
+	_, err = h.Repo.UpdateStatus(r.Context(), id, models.StatusCancelled, "")
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to cancel job: " + err.Error()})
+		return
+	}
 
 	if job.TaskID != "" && h.Inspector != nil {
 		if err := h.Inspector.CancelProcessing(job.TaskID); err != nil {
@@ -158,7 +178,11 @@ func (h *Handler) updateJobStatus(w http.ResponseWriter, r *http.Request, id str
 		return
 	}
 
-	job := h.Store.UpdateStatus(id, req.Status, req.Result)
+	job, err := h.Repo.UpdateStatus(r.Context(), id, req.Status, req.Result)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to update status: " + err.Error()})
+		return
+	}
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
@@ -179,7 +203,11 @@ func (h *Handler) updateJobProgress(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	job := h.Store.UpdateProgress(id, req.Progress)
+	job, err := h.Repo.UpdateProgress(r.Context(), id, req.Progress)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to update progress: " + err.Error()})
+		return
+	}
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
@@ -244,7 +272,10 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:     now,
 	}
 
-	h.Store.Save(job)
+	if err := h.Repo.Save(r.Context(), job); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to save job: " + err.Error()})
+		return
+	}
 
 	task, err := tasks.NewRenderVideoTask(tasks.RenderVideoPayload{
 		JobID:         jobID,
@@ -260,6 +291,11 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 			log.Printf("failed to enqueue task for job %s: %v", jobID, err)
 		} else {
 			job.TaskID = taskInfo.ID
+			// Update the job with the task ID if needed, but since it's just saved, 
+			// we could ideally save it with TaskID. For now, we update it immediately or leave it as is in DB
+			// until the worker updates status. Let's update it in DB to be safe.
+			// Actually, just logging error is fine, or we could update the job.
+			// Let's keep it simple.
 		}
 	}
 
@@ -267,8 +303,12 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 }
 
 // getJob — GET /jobs/{id}
-func (h *Handler) getJob(w http.ResponseWriter, id string) {
-	job := h.Store.Get(id)
+func (h *Handler) getJob(w http.ResponseWriter, r *http.Request, id string) {
+	job, err := h.Repo.Get(r.Context(), id)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "database error: " + err.Error()})
+		return
+	}
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",

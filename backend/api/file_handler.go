@@ -146,7 +146,11 @@ func (h *Handler) handleJobOutputs(w http.ResponseWriter, r *http.Request, jobID
 		return
 	}
 
-	job := h.Store.Get(jobID)
+	job, err := h.Repo.Get(r.Context(), jobID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "database error: " + err.Error()})
+		return
+	}
 	if job == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
