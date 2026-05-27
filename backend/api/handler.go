@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"render-queue/internal/config"
+	"render-queue/internal/models"
 	"render-queue/internal/tasks"
 )
 
@@ -114,14 +115,14 @@ func (h *Handler) cancelJob(w http.ResponseWriter, id string) {
 		return
 	}
 
-	if job.Status == StatusCompleted || job.Status == StatusFailed || job.Status == StatusCancelled {
+	if job.Status == models.StatusCompleted || job.Status == models.StatusFailed || job.Status == models.StatusCancelled {
 		writeJSON(w, http.StatusConflict, map[string]string{
 			"error": "job is already completed, failed, or cancelled",
 		})
 		return
 	}
 
-	h.Store.UpdateStatus(id, StatusCancelled, "")
+	h.Store.UpdateStatus(id, models.StatusCancelled, "")
 
 	if job.TaskID != "" && h.Inspector != nil {
 		if err := h.Inspector.CancelProcessing(job.TaskID); err != nil {
@@ -135,14 +136,14 @@ func (h *Handler) cancelJob(w http.ResponseWriter, id string) {
 }
 
 var validStatuses = map[string]bool{
-	StatusProcessing: true,
-	StatusCompleted:  true,
-	StatusFailed:     true,
+	models.StatusProcessing: true,
+	models.StatusCompleted:  true,
+	models.StatusFailed:     true,
 }
 
 // updateJobStatus — PATCH /jobs/{id}/status
 func (h *Handler) updateJobStatus(w http.ResponseWriter, r *http.Request, id string) {
-	var req UpdateJobStatusRequest
+	var req models.UpdateJobStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "invalid JSON body: " + err.Error(),
@@ -170,7 +171,7 @@ func (h *Handler) updateJobStatus(w http.ResponseWriter, r *http.Request, id str
 
 // updateJobProgress — PATCH /jobs/{id}/progress
 func (h *Handler) updateJobProgress(w http.ResponseWriter, r *http.Request, id string) {
-	var req UpdateJobProgressRequest
+	var req models.UpdateJobProgressRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "invalid JSON body: " + err.Error(),
@@ -191,7 +192,7 @@ func (h *Handler) updateJobProgress(w http.ResponseWriter, r *http.Request, id s
 
 // createJob — POST /jobs
 func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
-	var req CreateJobRequest
+	var req models.CreateJobRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "invalid JSON body: " + err.Error(),
@@ -232,13 +233,13 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 	jobID := uuid.New().String()
 	now := time.Now().UTC()
 
-	job := &Job{
+	job := &models.Job{
 		ID:            jobID,
 		InputVideoURL: req.InputVideoURL,
 		OutputURL:     fmt.Sprintf("https://storage.service/outputs/%s.mp4", jobID),
 		TemplateID:    req.TemplateID,
 		DynamicText:   req.DynamicText,
-		Status:        StatusPending,
+		Status:        models.StatusPending,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
