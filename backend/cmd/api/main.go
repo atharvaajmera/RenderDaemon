@@ -33,7 +33,7 @@ func enableCORS(next http.Handler) http.Handler {
 func main() {
 	godotenv.Load()
 
-	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+	redisURL := os.Getenv("REDIS_URL")
 	apiPort := os.Getenv("API_PORT")
 
 	ctx := context.Background()
@@ -48,10 +48,15 @@ func main() {
 		log.Fatalf("failed to run migrations: %v", err)
 	}
 
-	queueClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
+	redisOpt, err := asynq.ParseRedisURI(redisURL)
+	if err != nil {
+		log.Fatalf("failed to parse redis url: %v", err)
+	}
+
+	queueClient := asynq.NewClient(redisOpt)
 	defer queueClient.Close()
 
-	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: redisAddr})
+	inspector := asynq.NewInspector(redisOpt)
 	defer inspector.Close()
 
 	repo := repository.NewPostgresJobRepository(pool)
@@ -62,7 +67,7 @@ func main() {
 	handler.RegisterRoutes(mux)
 
 	addr := ":" + apiPort
-	fmt.Printf("Render Queue API starting on %s (Redis: %s)\n", addr, redisAddr)
+	fmt.Printf("Render Queue API starting on %s (Redis: %s)\n", addr, redisURL)
 	if err := http.ListenAndServe(addr, enableCORS(mux)); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}

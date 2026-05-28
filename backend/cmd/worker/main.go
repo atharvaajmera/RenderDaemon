@@ -71,7 +71,7 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 
 	patchStatus(ctx, payload.JobID, "processing", "")
 	inputPath := filepath.Join("storage", payload.InputVideoURL)
-	outputDir := filepath.Join("storage", "temp", payload.JobID)
+	outputDir := filepath.Join("storage", "tmp", payload.JobID)
 
 	fontPath := ""
 	if _, err := os.Stat("storage/font.ttf"); err == nil {
@@ -130,7 +130,7 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 }
 
 func finalizeRenderOutputs(jobID string) error {
-	tempDir := filepath.Join("storage", "temp", jobID)
+	tempDir := filepath.Join("storage", "tmp", jobID)
 	renderDir := filepath.Join("storage", "renders", jobID)
 
 	if err := os.MkdirAll(renderDir, 0755); err != nil {
