@@ -1,0 +1,7 @@
+.env
+.env.production
+.env.local
+storage/
+*.exe
+.gocache/
+.git/

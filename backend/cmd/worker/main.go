@@ -28,7 +28,7 @@ var (
 func main() {
 	godotenv.Load()
 
-	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+	redisURL := os.Getenv("REDIS_URL")
 	databaseURL := os.Getenv("DATABASE_URL")
 
 	ctx := context.Background()
@@ -47,15 +47,20 @@ func main() {
 
 	cfg = config.NewConfigManager()
 
+	redisOpt, err := asynq.ParseRedisURI(redisURL)
+	if err != nil {
+		log.Fatalf("failed to parse redis url: %v", err)
+	}
+
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: redisAddr},
+		redisOpt,
 		asynq.Config{Concurrency: concurrency},
 	)
 
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(tasks.TypeRenderVideo, handleRenderVideo)
 
-	fmt.Printf("Worker starting (Redis: %s, Concurrency: %d)\n", redisAddr, concurrency)
+	fmt.Printf("Worker starting (Redis: %s, Concurrency: %d)\n", redisURL, concurrency)
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("worker failed: %v", err)
 	}

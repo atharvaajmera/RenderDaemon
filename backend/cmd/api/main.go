@@ -34,7 +34,13 @@ func main() {
 	godotenv.Load()
 
 	redisURL := os.Getenv("REDIS_URL")
-	apiPort := os.Getenv("API_PORT")
+	apiPort := os.Getenv("PORT")
+	if apiPort == "" {
+		apiPort = os.Getenv("API_PORT")
+		if apiPort == "" {
+			apiPort = "9090"
+		}
+	}
 
 	ctx := context.Background()
 	databaseURL := os.Getenv("DATABASE_URL")
