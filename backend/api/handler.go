@@ -31,6 +31,7 @@ func NewHandler(repo repository.JobRepository, cfg *config.ConfigManager, queue 
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("/", h.handleRoot)
 	mux.HandleFunc("/jobs", h.handleJobs)
 	mux.HandleFunc("/jobs/", h.handleJobByID)
 	mux.HandleFunc("/profiles", h.handleProfiles)
@@ -39,6 +40,20 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/workflows/", h.handleWorkflowByID)
 	mux.HandleFunc("/upload", h.handleUpload)
 	mux.HandleFunc("/download/", h.handleDownload)
+}
+
+// handleRoot — GET /
+func (h *Handler) handleRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "Not Found",
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{
+		"status": "online",
+		"service": "RenderDaemon API",
+	})
 }
 
 // handleJobs — GET /jobs, POST /jobs
