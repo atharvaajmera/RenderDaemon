@@ -52,36 +52,12 @@ export default function Dashboard() {
       {/* Dashboard Wrapper (The "Box" with the colorful background) */}
       <div className="w-full max-w-[1280px] flex flex-col items-center rounded-[32px] border border-white/10 overflow-hidden shadow-2xl relative pb-16"
            style={{
-             backgroundImage: "url('https://lh3.googleusercontent.com/aida/ADBb0uiLkNweclgSdNA49eqhQQ-ZFmn2n59s4LzxIjH5NhaSFuYzF8ZTrdUZ1wDHiIajhjUjbLtj7si0iINlNF3F5R5d2QaxqsVwUBecnAam32kNupFBn7k_lSvK6EiDYut4P0os44Gnn7TWaZWLvm6Vv5Wzs5DhZQNxaJF2mIKHjd-4TTh1Drrc58YXWWD8My3AW5K3wYcDqgK3zCFlh0nKOW4OFJTi347UOuBAWI89iZYADJEmZ7J-iseK8sk')",
+             backgroundImage: "url('/vibrant-mesh-bg.png')",
              backgroundSize: 'cover',
              backgroundPosition: 'center',
            }}>
            
 
-        {/* Hero Section matching exactly the Seamless Atmospheric V2 HTML */}
-        <section className="relative w-full flex flex-col items-center justify-center pt-12 pb-12 overflow-hidden px-4 md:px-12">
-          <div className="relative z-10 w-full flex flex-col items-center text-center space-y-8 glass-panel p-8 md:p-16 rounded-[40px] !bg-black/60 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-secondary-container/30 bg-secondary-container/10 mb-4">
-              <span className="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_theme('colors.secondary-container')] animate-pulse"></span>
-              <span className="font-label-sm text-label-sm text-secondary-container">System V2.4 is Live</span>
-            </div>
-            <h2 className="font-headline-xl text-headline-xl md:text-[64px] md:leading-[72px] text-white max-w-4xl tracking-tighter">
-              Render, transform, and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00eefc] to-[#8a2be2]">automate</span> media workflows.
-            </h2>
-            <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
-              One upload. Infinite outputs. Production-ready assets in seconds. The sophisticated framework for modern creators.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
-              <Link href="/create" className="bg-[#8a2be2] hover:bg-[#7822c6] text-white font-label-sm text-label-sm px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(138,43,226,0.4)] transition-all uppercase tracking-wider flex items-center gap-2 justify-center">
-                <PlusIcon weight="bold" size={20} />
-                Start Creating
-              </Link>
-              <button className="bg-black/40 hover:bg-black/60 border border-white/10 text-white font-label-sm text-label-sm px-8 py-4 rounded-xl transition-all uppercase tracking-wider">
-                Explore Templates
-              </button>
-            </div>
-          </div>
-        </section>
 
         {/* Metrics & Queue Section */}
         <div className="w-full flex flex-col gap-12 px-4 md:px-12">

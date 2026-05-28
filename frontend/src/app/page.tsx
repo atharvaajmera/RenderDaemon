@@ -9,7 +9,7 @@ export default function LandingPage() {
     <div 
       className="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container" 
       style={{
-        backgroundImage: "url('https://lh3.googleusercontent.com/aida/ADBb0uiLkNweclgSdNA49eqhQQ-ZFmn2n59s4LzxIjH5NhaSFuYzF8ZTrdUZ1wDHiIajhjUjbLtj7si0iINlNF3F5R5d2QaxqsVwUBecnAam32kNupFBn7k_lSvK6EiDYut4P0os44Gnn7TWaZWLvm6Vv5Wzs5DhZQNxaJF2mIKHjd-4TTh1Drrc58YXWWD8My3AW5K3wYcDqgK3zCFlh0nKOW4OFJTi347UOuBAWI89iZYADJEmZ7J-iseK8sk')", 
+        backgroundImage: "url('/vibrant-mesh-bg.png')", 
         backgroundSize: 'cover', 
         backgroundPosition: 'center', 
         backgroundAttachment: 'fixed'
