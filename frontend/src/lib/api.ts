@@ -1,3 +1,5 @@
+import { createClient } from '@/utils/supabase/client';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090';
 
 /**
@@ -6,19 +8,25 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090';
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  const defaultHeaders: Record<string, string> = {};
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  const headers: Record<string, string> = {
+    ...((options.headers as Record<string, string>) || {}),
+  };
   
   // If it's a FormData object, let the browser set the Content-Type with the boundary
   if (!(options.body instanceof FormData)) {
-    defaultHeaders['Content-Type'] = 'application/json';
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
   }
 
   const response = await fetch(url, {
     ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
