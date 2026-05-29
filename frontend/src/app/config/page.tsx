@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getProfiles, getWorkflows, Profile, Workflow } from '@/lib/api';
-import { Card } from '@/components/Card';
-import { Gear, SlidersHorizontal, Stack, TreeStructure } from '@phosphor-icons/react';
+import { GearSix, TreeStructure, SlidersHorizontal, ArrowRight, HardDrives } from '@phosphor-icons/react';
 
 export default function ConfigPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -27,109 +26,146 @@ export default function ConfigPage() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-      <div>
-        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Gear color="var(--color-purple)" /> Configuration Manager
-        </h2>
-        <p style={{ color: 'var(--color-text-secondary)' }}>
-          Manage your rendering templates. Profiles define single rendering steps (like transcoding or audio extraction). 
-          Workflows chain multiple profiles together into complex pipelines.
-        </p>
-      </div>
-
-      {error && (
-        <Card>
-          <div style={{ color: 'var(--color-error)' }}>Failed to load configuration: {error}</div>
-        </Card>
-      )}
-
-      {loading ? (
-        <div className="scanner-bar-container" style={{ height: '2px', background: 'var(--color-bg-base)', borderRadius: '2px' }}>
-          <div className="scanner-bar" />
+    <div className="min-h-screen w-full flex justify-center bg-[#09090b] px-4 py-8 font-inter">
+      <div className="w-full max-w-[1120px] flex flex-col gap-10">
+        
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white tracking-tight flex items-center gap-2">
+              <GearSix className="text-[#a1a1aa]" />
+              Configuration Manager
+            </h1>
+            <p className="text-sm text-[#a1a1aa] mt-1 max-w-2xl">
+              Manage your rendering templates. Profiles define single rendering steps (like transcoding). 
+              Workflows chain multiple profiles together into complex pipelines.
+            </p>
+          </div>
         </div>
-      ) : (
-        <>
-          <section>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TreeStructure color="var(--color-cyan)" /> Available Workflows
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-              {workflows.map(wf => (
-                <Card key={wf.id} className="workflow-card" glow={true}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{wf.name}</h4>
-                    <span className="mono-text" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }}>
-                      {wf.id}
-                    </span>
-                  </div>
-                  <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                    {wf.description}
-                  </p>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <h5 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Execution Steps</h5>
-                    {wf.step_groups.map((group, idx) => (
-                      <div key={idx} style={{ 
-                        padding: '0.75rem', 
-                        background: 'rgba(0,0,0,0.2)', 
-                        borderRadius: '6px',
-                        borderLeft: `2px solid ${group.parallel ? 'var(--color-cyan)' : 'var(--color-purple)'}`
-                      }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Stack /> {group.parallel ? 'Parallel Execution' : 'Sequential Step'}
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          {group.steps.map((step, sIdx) => (
-                            <span key={sIdx} className="mono-text" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: 'var(--color-bg-surface)', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
-                              {step.profile_id}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
 
-          <section>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <SlidersHorizontal color="var(--color-purple)" /> Atomic Profiles
-            </h3>
+        {error && (
+          <div className="bg-[#ef4444]/10 border border-[#ef4444]/20 rounded-lg p-4">
+            <span className="text-sm text-[#f87171]">Failed to load configuration: {error}</span>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-1/3 h-full bg-[#3b82f6] rounded-full animate-[scan_2s_ease-in-out_infinite]" />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-12">
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {profiles.map(prof => (
-                <Card key={prof.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{prof.name}</h4>
-                    <span className="mono-text" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: 'var(--color-cyan)' }}>
-                      {prof.operation}
-                    </span>
-                  </div>
-                  <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    {prof.description}
-                  </p>
-                  
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '6px' }}>
-                    <h5 style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>PARAMETERS</h5>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem 1rem', fontSize: '0.875rem' }}>
-                      {Object.entries(prof.parameters).map(([key, val]) => (
-                        <React.Fragment key={key}>
-                          <span className="mono-text" style={{ color: 'var(--color-text-secondary)' }}>{key}:</span>
-                          <span className="mono-text" style={{ color: 'var(--color-text-primary)' }}>{val}</span>
-                        </React.Fragment>
-                      ))}
+            {/* Workflows Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-2">
+                <TreeStructure size={20} className="text-white" />
+                <h3 className="text-lg font-medium text-white">Available Workflows</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workflows.map(wf => (
+                  <div key={wf.id} className="bg-[#18181b] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors shadow-sm flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-base font-semibold text-white">{wf.name}</h4>
+                      <span className="font-mono text-[10px] uppercase text-[#a1a1aa] bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                        {wf.id.substring(0, 8)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[#a1a1aa] mb-5 flex-grow">
+                      {wf.description}
+                    </p>
+                    
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] font-semibold text-[#a1a1aa] uppercase tracking-wider">Pipeline Steps</span>
+                      <div className="bg-white/[0.02] border border-white/5 rounded-lg p-3 flex flex-col gap-3">
+                        {wf.step_groups.map((group, idx) => (
+                          <div key={idx} className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium text-[#d4d4d8]">
+                                {group.parallel ? 'Parallel Group' : `Step ${idx + 1}`}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {group.steps.map((step, sIdx) => (
+                                <React.Fragment key={sIdx}>
+                                  <div className="text-xs bg-[#27272a] text-[#e4e4e7] px-2 py-1 rounded-md border border-white/5 shadow-sm font-medium">
+                                    {profiles.find(p => p.id === step.profile_id)?.name || step.profile_id}
+                                  </div>
+                                  {sIdx < group.steps.length - 1 && group.parallel && (
+                                    <span className="text-[#a1a1aa] text-xs">+</span>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                            {idx < wf.step_groups.length - 1 && (
+                              <div className="flex justify-center mt-1.5 mb-0.5">
+                                <ArrowRight size={14} className="text-[#52525b]" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </>
-      )}
+                ))}
+              </div>
+            </section>
+
+            {/* Profiles Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-2">
+                <SlidersHorizontal size={20} className="text-white" />
+                <h3 className="text-lg font-medium text-white">Atomic Profiles</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {profiles.map(prof => (
+                  <div key={prof.id} className="bg-[#18181b] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-sm font-semibold text-white">{prof.name}</h4>
+                      <span className="text-[10px] uppercase font-medium text-[#3b82f6] bg-[#3b82f6]/10 px-2 py-0.5 rounded border border-[#3b82f6]/20">
+                        {prof.operation}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa] mb-4 h-8 overflow-hidden">
+                      {prof.description}
+                    </p>
+                    
+                    <div className="bg-[#09090b] rounded-lg border border-white/5 overflow-hidden">
+                      <div className="px-3 py-1.5 bg-white/5 border-b border-white/5">
+                        <span className="text-[10px] font-semibold text-[#a1a1aa] uppercase tracking-wider">Parameters</span>
+                      </div>
+                      <div className="p-3">
+                        <table className="w-full text-xs">
+                          <tbody>
+                            {Object.entries(prof.parameters).map(([key, val], i) => (
+                              <tr key={key} className={i !== 0 ? 'border-t border-white/5' : ''}>
+                                <td className="py-1.5 text-[#a1a1aa] font-mono pr-2">{key}</td>
+                                <td className="py-1.5 text-white text-right break-all">
+                                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+          </div>
+        )}
+      </div>
+      
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+      `}</style>
     </div>
   );
 }

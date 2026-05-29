@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Job, getAllJobs, cancelJob } from '@/lib/api';
 import { ProgressBar } from '@/components/ProgressBar';
 import { StatusChip } from '@/components/StatusChip';
-import { PlusIcon, XIcon, ArrowRightIcon } from '@phosphor-icons/react';
+import { Plus, X, ArrowRight, CaretRight, CheckCircle, Clock, ChartLineUp } from '@phosphor-icons/react';
 
 export default function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -45,100 +45,173 @@ export default function Dashboard() {
   };
 
   const activeJobs = jobs.filter(j => j.status === 'processing' || j.status === 'pending').length;
+  const completedJobs = jobs.filter(j => j.status === 'completed').length;
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-[#0F0F0F] px-4 py-8">
+    <div className="min-h-screen w-full flex flex-col items-center bg-[#09090b] px-4 py-8 font-inter">
       
-      {/* Dashboard Wrapper (The "Box" with the colorful background) */}
-      <div className="w-full max-w-[1280px] flex flex-col items-center rounded-[32px] border border-white/10 overflow-hidden shadow-2xl relative pb-16"
-           style={{
-             backgroundImage: "url('/vibrant-mesh-bg.png')",
-             backgroundSize: 'cover',
-             backgroundPosition: 'center',
-           }}>
-           
+      {/* SaaS Page Wrapper */}
+      <div className="w-full max-w-[1120px] flex flex-col gap-8">
+        
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Overview</h1>
+            <p className="text-sm text-[#a1a1aa] mt-1">Monitor your rendering queue and system metrics.</p>
+          </div>
+          <Link 
+            href="/create" 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
+          >
+            <Plus weight="bold" />
+            New Job
+          </Link>
+        </div>
 
-
-        {/* Metrics & Queue Section */}
-        <div className="w-full flex flex-col gap-12 px-4 md:px-12">
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className={`glass-panel p-8 rounded-3xl flex flex-col ${activeJobs > 0 ? 'glow-border' : ''}`}>
-            <span className="font-label-sm text-label-sm text-secondary-container uppercase mb-2">Active Processes</span>
-            <span className="font-headline-xl text-5xl font-bold text-white">{activeJobs}</span>
-          </div>
-          <div className="glass-panel p-8 rounded-3xl flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Completed Today</span>
-            <span className="font-headline-xl text-5xl font-bold text-white">{jobs.filter(j => j.status === 'completed').length}</span>
-          </div>
-          <div className="glass-panel p-8 rounded-3xl flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Total Jobs</span>
-            <span className="font-headline-xl text-5xl font-bold text-white">{jobs.length}</span>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard 
+            title="Active Processes" 
+            value={activeJobs} 
+            icon={<ChartLineUp size={20} className="text-[#3b82f6]" />} 
+          />
+          <MetricCard 
+            title="Completed" 
+            value={completedJobs} 
+            icon={<CheckCircle size={20} className="text-[#10b981]" />} 
+          />
+          <MetricCard 
+            title="Total Jobs" 
+            value={jobs.length} 
+            icon={<Clock size={20} className="text-[#a1a1aa]" />} 
+          />
         </div>
 
-        {/* Job List */}
-        <div className="glass-panel p-8 rounded-[32px]">
-          <h3 className="font-headline-md text-2xl font-bold text-white mb-8">Queue Status</h3>
+        {/* Job Queue Table */}
+        <div className="flex flex-col bg-[#18181b] border border-white/5 rounded-xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-[#18181b]">
+            <h3 className="text-base font-medium text-white">Recent Activity</h3>
+          </div>
           
-          {loading && jobs.length === 0 ? (
-            <div className="scanner-bar-container h-[2px] bg-white/10 rounded-full">
-              <div className="scanner-bar"></div>
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="text-center py-16 text-on-surface-variant font-body-lg">
-              No jobs found. The daemon is waiting.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {jobs.map(job => (
-                <div 
-                  key={job.id}
-                  className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr_1fr_auto] items-center gap-4 p-6 glass-panel !bg-white/5 rounded-2xl hover:!bg-white/10 transition-all hover:-translate-y-1"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-bold text-white">{job.template_id}</span>
-                    <Link href={`/job/${job.id}`} className="font-label-sm text-xs text-on-surface-variant hover:text-secondary-container transition-colors">
-                      {job.id.substring(0, 8)}...
-                    </Link>
-                  </div>
-
-                  <div className="w-full">
-                    <ProgressBar progress={job.progress} label={job.status === 'processing' ? 'Rendering...' : undefined} />
-                  </div>
-
-                  <div className="flex justify-center">
-                    <StatusChip status={job.status} />
-                  </div>
-
-                  <div className="font-label-sm text-sm text-on-surface-variant text-right">
-                    {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-
-                  <div className="flex items-center gap-2 justify-end">
-                    {(job.status === 'processing' || job.status === 'pending') && (
-                      <button 
-                        onClick={() => handleCancel(job.id)}
-                        className="p-2 text-on-surface-variant hover:text-status-error transition-colors rounded-lg"
-                        title="Cancel Job"
-                      >
-                        <XIcon weight="bold" size={20} />
-                      </button>
-                    )}
-                    <Link 
-                      href={`/job/${job.id}`} 
-                      className="p-2 text-secondary-container bg-secondary-container/10 hover:bg-secondary-container/20 rounded-lg transition-colors flex items-center justify-center"
-                    >
-                      <ArrowRightIcon weight="bold" size={20} />
-                    </Link>
-                  </div>
+          <div className="overflow-x-auto">
+            {loading && jobs.length === 0 ? (
+              <div className="p-8 text-center text-sm text-[#a1a1aa]">Loading jobs...</div>
+            ) : jobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center">
+                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                  <ChartLineUp size={24} className="text-[#a1a1aa]" />
                 </div>
-              ))}
-            </div>
-          )}
+                <h4 className="text-base font-medium text-white mb-1">No jobs yet</h4>
+                <p className="text-sm text-[#a1a1aa] max-w-sm mb-6">You haven't submitted any rendering jobs. Create a new job to get started.</p>
+                <Link 
+                  href="/create" 
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <Plus weight="bold" />
+                  Create First Job
+                </Link>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 bg-[#18181b]">
+                    <th className="px-6 py-3 text-xs font-medium text-[#a1a1aa] uppercase tracking-wider w-1/4">Template</th>
+                    <th className="px-6 py-3 text-xs font-medium text-[#a1a1aa] uppercase tracking-wider w-[15%]">Status</th>
+                    <th className="px-6 py-3 text-xs font-medium text-[#a1a1aa] uppercase tracking-wider w-1/4">Progress</th>
+                    <th className="px-6 py-3 text-xs font-medium text-[#a1a1aa] uppercase tracking-wider w-[15%]">Time</th>
+                    <th className="px-6 py-3 text-xs font-medium text-[#a1a1aa] uppercase tracking-wider text-right w-[15%]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 bg-[#18181b]">
+                  {jobs.map(job => (
+                    <tr key={job.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-[#e4e4e7]">{job.template_id}</span>
+                          <Link href={`/job/${job.id}`} className="text-xs text-[#a1a1aa] hover:text-white transition-colors mt-0.5">
+                            {job.id.substring(0, 8)}...
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <SaaSStatusChip status={job.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-full max-w-[200px] flex items-center gap-3">
+                          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                job.status === 'completed' ? 'bg-[#10b981]' : 
+                                job.status === 'failed' || job.status === 'cancelled' ? 'bg-[#ef4444]' : 
+                                'bg-[#3b82f6]'
+                              }`}
+                              style={{ width: `${job.progress}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-[#a1a1aa] w-8">{Math.round(job.progress)}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#a1a1aa]">
+                        {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {(job.status === 'processing' || job.status === 'pending') && (
+                            <button 
+                              onClick={() => handleCancel(job.id)}
+                              className="p-1.5 text-[#a1a1aa] hover:text-[#ef4444] hover:bg-white/5 rounded transition-colors"
+                              title="Cancel Job"
+                            >
+                              <X weight="bold" size={16} />
+                            </button>
+                          )}
+                          <Link 
+                            href={`/job/${job.id}`} 
+                            className="p-1.5 text-[#a1a1aa] hover:text-white hover:bg-white/5 rounded transition-colors flex items-center"
+                          >
+                            <CaretRight weight="bold" size={16} />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
-        </div>
+
       </div>
     </div>
+  );
+}
+
+function MetricCard({ title, value, icon }: { title: string, value: number, icon: React.ReactNode }) {
+  return (
+    <div className="bg-[#18181b] border border-white/5 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:border-white/10 transition-colors">
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium text-[#a1a1aa]">{title}</span>
+        {icon}
+      </div>
+      <span className="text-2xl font-semibold text-white">{value}</span>
+    </div>
+  );
+}
+
+function SaaSStatusChip({ status }: { status: string }) {
+  const getStyle = () => {
+    switch (status) {
+      case 'processing': return 'bg-[#3b82f6]/10 text-[#60a5fa] border-[#3b82f6]/20';
+      case 'completed': return 'bg-[#10b981]/10 text-[#34d399] border-[#10b981]/20';
+      case 'failed': return 'bg-[#ef4444]/10 text-[#f87171] border-[#ef4444]/20';
+      case 'cancelled': return 'bg-white/5 text-[#a1a1aa] border-white/10';
+      default: return 'bg-white/5 text-[#a1a1aa] border-white/10';
+    }
+  };
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getStyle()}`}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
   );
 }
