@@ -12,6 +12,7 @@ import (
 const jobsTableSQL = `
 CREATE TABLE IF NOT EXISTS jobs (
     id            TEXT PRIMARY KEY,
+    user_id       TEXT,
     task_id       TEXT,
     input_url     TEXT NOT NULL,
     output_url    TEXT,
@@ -25,7 +26,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS user_id TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at DESC);
 `
 

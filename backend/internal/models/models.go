@@ -21,6 +21,7 @@ type DynamicText struct {
 // Job represents a render job in the system.
 type Job struct {
 	ID            string      `json:"id"`
+	UserID        string      `json:"user_id"`
 	TaskID        string      `json:"task_id,omitempty"`
 	InputVideoURL string      `json:"input_video_url"`
 	OutputURL     string      `json:"output_url"`

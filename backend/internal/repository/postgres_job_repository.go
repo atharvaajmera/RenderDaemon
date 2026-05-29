@@ -28,10 +28,10 @@ func (r *PostgresJobRepository) Save(ctx context.Context, job *models.Job) error
 	}
 
 	_, err = r.pool.Exec(ctx, `
-		INSERT INTO jobs (id, task_id, input_url, output_url, template_id, dynamic_text, status, progress, error, result, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO jobs (id, user_id, task_id, input_url, output_url, template_id, dynamic_text, status, progress, error, result, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`,
-		job.ID, job.TaskID, job.InputVideoURL, job.OutputURL, job.TemplateID,
+		job.ID, job.UserID, job.TaskID, job.InputVideoURL, job.OutputURL, job.TemplateID,
 		dtJSON, job.Status, job.Progress, job.Error, job.Result,
 		job.CreatedAt, job.UpdatedAt,
 	)
@@ -47,11 +47,11 @@ func (r *PostgresJobRepository) Get(ctx context.Context, id string) (*models.Job
 	var dtJSON []byte
 
 	err := r.pool.QueryRow(ctx, `
-		SELECT id, task_id, input_url, output_url, template_id, dynamic_text,
+		SELECT id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		       status, progress, error, result, created_at, updated_at
 		FROM jobs WHERE id = $1
 	`, id).Scan(
-		&job.ID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
+		&job.ID, &job.UserID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
 		&dtJSON, &job.Status, &job.Progress, &job.Error, &job.Result,
 		&job.CreatedAt, &job.UpdatedAt,
 	)
@@ -72,7 +72,7 @@ func (r *PostgresJobRepository) Get(ctx context.Context, id string) (*models.Job
 // List returns all jobs ordered by creation time (newest first).
 func (r *PostgresJobRepository) List(ctx context.Context) ([]*models.Job, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, task_id, input_url, output_url, template_id, dynamic_text,
+		SELECT id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		       status, progress, error, result, created_at, updated_at
 		FROM jobs ORDER BY created_at DESC
 	`)
@@ -84,15 +84,45 @@ func (r *PostgresJobRepository) List(ctx context.Context) ([]*models.Job, error)
 	return scanJobs(rows)
 }
 
+// ListByUser returns all jobs for a specific user.
+func (r *PostgresJobRepository) ListByUser(ctx context.Context, userID string) ([]*models.Job, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
+		       status, progress, error, result, created_at, updated_at
+		FROM jobs WHERE user_id = $1 ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list jobs by user %s: %w", userID, err)
+	}
+	defer rows.Close()
+
+	return scanJobs(rows)
+}
+
 // ListByStatus returns all jobs with a given status, newest first.
 func (r *PostgresJobRepository) ListByStatus(ctx context.Context, status string) ([]*models.Job, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, task_id, input_url, output_url, template_id, dynamic_text,
+		SELECT id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		       status, progress, error, result, created_at, updated_at
 		FROM jobs WHERE status = $1 ORDER BY created_at DESC
 	`, status)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list jobs by status %s: %w", status, err)
+	}
+	defer rows.Close()
+
+	return scanJobs(rows)
+}
+
+// ListByUserAndStatus returns all jobs for a user with a given status.
+func (r *PostgresJobRepository) ListByUserAndStatus(ctx context.Context, userID, status string) ([]*models.Job, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
+		       status, progress, error, result, created_at, updated_at
+		FROM jobs WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC
+	`, userID, status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list jobs by user %s and status %s: %w", userID, status, err)
 	}
 	defer rows.Close()
 
@@ -108,10 +138,10 @@ func (r *PostgresJobRepository) UpdateStatus(ctx context.Context, id, status, re
 		UPDATE jobs
 		SET status = $1, result = CASE WHEN $2 = '' THEN result ELSE $2 END, updated_at = NOW()
 		WHERE id = $3
-		RETURNING id, task_id, input_url, output_url, template_id, dynamic_text,
+		RETURNING id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		          status, progress, error, result, created_at, updated_at
 	`, status, result, id).Scan(
-		&job.ID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
+		&job.ID, &job.UserID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
 		&dtJSON, &job.Status, &job.Progress, &job.Error, &job.Result,
 		&job.CreatedAt, &job.UpdatedAt,
 	)
@@ -138,10 +168,10 @@ func (r *PostgresJobRepository) UpdateProgress(ctx context.Context, id string, p
 		UPDATE jobs
 		SET progress = $1, updated_at = NOW()
 		WHERE id = $2
-		RETURNING id, task_id, input_url, output_url, template_id, dynamic_text,
+		RETURNING id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		          status, progress, error, result, created_at, updated_at
 	`, progress, id).Scan(
-		&job.ID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
+		&job.ID, &job.UserID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
 		&dtJSON, &job.Status, &job.Progress, &job.Error, &job.Result,
 		&job.CreatedAt, &job.UpdatedAt,
 	)
@@ -167,7 +197,7 @@ func scanJobs(rows pgx.Rows) ([]*models.Job, error) {
 		var dtJSON []byte
 
 		if err := rows.Scan(
-			&job.ID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
+			&job.ID, &job.UserID, &job.TaskID, &job.InputVideoURL, &job.OutputURL, &job.TemplateID,
 			&dtJSON, &job.Status, &job.Progress, &job.Error, &job.Result,
 			&job.CreatedAt, &job.UpdatedAt,
 		); err != nil {
