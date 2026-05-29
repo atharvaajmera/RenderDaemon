@@ -31,15 +31,15 @@ func NewHandler(repo repository.JobRepository, cfg *config.ConfigManager, queue 
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/", h.handleRoot)
-	mux.HandleFunc("/jobs", h.handleJobs)
-	mux.HandleFunc("/jobs/", h.handleJobByID)
-	mux.HandleFunc("/profiles", h.handleProfiles)
-	mux.HandleFunc("/profiles/", h.handleProfileByID)
-	mux.HandleFunc("/workflows", h.handleWorkflows)
-	mux.HandleFunc("/workflows/", h.handleWorkflowByID)
-	mux.HandleFunc("/upload", h.handleUpload)
-	mux.HandleFunc("/download/", h.handleDownload)
+	mux.HandleFunc("/", h.handleRoot) // Health check remains public
+	mux.HandleFunc("/jobs", AuthMiddleware(h.handleJobs))
+	mux.HandleFunc("/jobs/", AuthMiddleware(h.handleJobByID))
+	mux.HandleFunc("/profiles", AuthMiddleware(h.handleProfiles))
+	mux.HandleFunc("/profiles/", AuthMiddleware(h.handleProfileByID))
+	mux.HandleFunc("/workflows", AuthMiddleware(h.handleWorkflows))
+	mux.HandleFunc("/workflows/", AuthMiddleware(h.handleWorkflowByID))
+	mux.HandleFunc("/upload", AuthMiddleware(h.handleUpload))
+	mux.HandleFunc("/download/", AuthMiddleware(h.handleDownload))
 }
 
 // handleRoot — GET /
@@ -71,9 +71,15 @@ func (h *Handler) handleJobs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) listJobs(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(UserIDKey).(string)
+	if !ok || userID == "" {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
 	status := r.URL.Query().Get("status")
 	if status != "" {
-		jobs, err := h.Repo.ListByStatus(r.Context(), status)
+		jobs, err := h.Repo.ListByUserAndStatus(r.Context(), userID, status)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list jobs: " + err.Error()})
 			return
@@ -82,7 +88,7 @@ func (h *Handler) listJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	jobs, err := h.Repo.List(r.Context())
+	jobs, err := h.Repo.ListByUser(r.Context(), userID)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list jobs: " + err.Error()})
 		return
@@ -134,6 +140,12 @@ func (h *Handler) handleJobByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) cancelJob(w http.ResponseWriter, r *http.Request, id string) {
+	userID, ok := r.Context().Value(UserIDKey).(string)
+	if !ok || userID == "" {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
 	job, err := h.Repo.Get(r.Context(), id)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "database error: " + err.Error()})
@@ -143,6 +155,11 @@ func (h *Handler) cancelJob(w http.ResponseWriter, r *http.Request, id string) {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
 		})
+		return
+	}
+
+	if job.UserID != userID {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
 		return
 	}
 
@@ -235,6 +252,12 @@ func (h *Handler) updateJobProgress(w http.ResponseWriter, r *http.Request, id s
 
 // createJob — POST /jobs
 func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(UserIDKey).(string)
+	if !ok || userID == "" {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
 	var req models.CreateJobRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
@@ -278,6 +301,7 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 
 	job := &models.Job{
 		ID:            jobID,
+		UserID:        userID,
 		InputVideoURL: req.InputVideoURL,
 		OutputURL:     fmt.Sprintf("https://storage.service/outputs/%s.mp4", jobID),
 		TemplateID:    req.TemplateID,
@@ -319,6 +343,12 @@ func (h *Handler) createJob(w http.ResponseWriter, r *http.Request) {
 
 // getJob — GET /jobs/{id}
 func (h *Handler) getJob(w http.ResponseWriter, r *http.Request, id string) {
+	userID, ok := r.Context().Value(UserIDKey).(string)
+	if !ok || userID == "" {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
 	job, err := h.Repo.Get(r.Context(), id)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "database error: " + err.Error()})
@@ -328,6 +358,11 @@ func (h *Handler) getJob(w http.ResponseWriter, r *http.Request, id string) {
 		writeJSON(w, http.StatusNotFound, map[string]string{
 			"error": "job not found",
 		})
+		return
+	}
+
+	if job.UserID != userID {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
 		return
 	}
 
