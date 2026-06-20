@@ -30,13 +30,12 @@ export default function LoginPage() {
         password,
         name,
         fetchOptions: {
-          onResponse: (ctx) => {
-            if (ctx.error) {
-              setError(ctx.error.message);
-            } else {
-              router.push('/dashboard');
-              router.refresh();
-            }
+          onError: (ctx) => {
+            setError(ctx.error.message);
+          },
+          onSuccess: () => {
+            router.push('/dashboard');
+            router.refresh();
           },
         },
       });
@@ -45,13 +44,12 @@ export default function LoginPage() {
         email,
         password,
         fetchOptions: {
-          onResponse: (ctx) => {
-            if (ctx.error) {
-              setError(ctx.error.message);
-            } else {
-              router.push('/dashboard');
-              router.refresh();
-            }
+          onError: (ctx) => {
+            setError(ctx.error.message);
+          },
+          onSuccess: () => {
+            router.push('/dashboard');
+            router.refresh();
           },
         },
       });
@@ -66,11 +64,9 @@ export default function LoginPage() {
       provider: 'google',
       callbackURL: '/dashboard',
       fetchOptions: {
-        onResponse: (ctx) => {
-          if (ctx.error) {
-            setError(ctx.error.message);
-            setLoading(false);
-          }
+        onError: (ctx) => {
+          setError(ctx.error.message);
+          setLoading(false);
         },
       },
     });
