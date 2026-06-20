@@ -1,39 +1,79 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { signIn, signUp } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { FilmStrip, CircleNotch } from '@phosphor-icons/react';
+import { FilmStrip, CircleNotch, GoogleLogo } from '@phosphor-icons/react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
 
-  const handleAuth = async (action: 'login' | 'signup') => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
-    let authError;
-    if (action === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      authError = error;
+    if (isSignUp) {
+      if (!name) {
+        setError('Name is required for sign up.');
+        setLoading(false);
+        return;
+      }
+      await signUp.email({
+        email,
+        password,
+        name,
+        fetchOptions: {
+          onResponse: (ctx) => {
+            if (ctx.error) {
+              setError(ctx.error.message);
+            } else {
+              router.push('/dashboard');
+              router.refresh();
+            }
+          },
+        },
+      });
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      authError = error;
+      await signIn.email({
+        email,
+        password,
+        fetchOptions: {
+          onResponse: (ctx) => {
+            if (ctx.error) {
+              setError(ctx.error.message);
+            } else {
+              router.push('/dashboard');
+              router.refresh();
+            }
+          },
+        },
+      });
     }
-
     setLoading(false);
+  };
 
-    if (authError) {
-      setError(authError.message);
-    } else {
-      router.push('/dashboard');
-      router.refresh();
-    }
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError(null);
+    await signIn.social({
+      provider: 'google',
+      callbackURL: '/dashboard',
+      fetchOptions: {
+        onResponse: (ctx) => {
+          if (ctx.error) {
+            setError(ctx.error.message);
+            setLoading(false);
+          }
+        },
+      },
+    });
   };
 
   return (
@@ -59,7 +99,36 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="flex flex-col gap-4">
+          {/* Google Sign In */}
+          <button
+            onClick={handleGoogleAuth}
+            disabled={loading}
+            className="w-full bg-white text-black text-sm font-medium py-2.5 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+          >
+            <GoogleLogo weight="bold" size={16} />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 text-xs text-[#52525b]">
+            <div className="flex-1 h-px bg-white/5"></div>
+            <span>OR CONTINUE WITH EMAIL</span>
+            <div className="flex-1 h-px bg-white/5"></div>
+          </div>
+
+          <form onSubmit={handleEmailAuth} className="flex flex-col gap-4">
+            {isSignUp && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-[#d4d4d8]">Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#52525b] focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/20 transition-all"
+                />
+              </div>
+            )}
+            
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-[#d4d4d8]">Email Address</label>
               <input
@@ -81,22 +150,27 @@ export default function LoginPage() {
                 className="w-full bg-[#09090b] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#52525b] focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/20 transition-all"
               />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-3 mt-2">
-            <button
-              onClick={() => handleAuth('login')}
-              disabled={loading || !email || !password}
-              className="w-full bg-white text-black text-sm font-medium py-2.5 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+            <div className="flex flex-col gap-3 mt-2">
+              <button
+                type="submit"
+                disabled={loading || !email || !password || (isSignUp && !name)}
+                className="w-full bg-transparent text-white border border-white/10 text-sm font-medium py-2.5 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {loading ? <CircleNotch className="animate-spin" size={16} /> : (isSignUp ? 'Create Account' : 'Sign In')}
+              </button>
+            </div>
+          </form>
+
+          <div className="text-center mt-2">
+            <button 
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError(null);
+              }}
+              className="text-xs text-[#a1a1aa] hover:text-white transition-colors"
             >
-              {loading ? <CircleNotch className="animate-spin" size={16} /> : 'Sign In'}
-            </button>
-            <button
-              onClick={() => handleAuth('signup')}
-              disabled={loading || !email || !password}
-              className="w-full bg-transparent text-white border border-white/10 text-sm font-medium py-2.5 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50"
-            >
-              Create Account
+              {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
             </button>
           </div>
         </div>

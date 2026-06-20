@@ -1,4 +1,16 @@
-import { createClient } from '@/utils/supabase/client';
+function getSessionToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  // Better Auth cookie names
+  const parts = value.split(`; better-auth.session_token=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  
+  // Try secure cookie for production
+  const secureParts = value.split(`; __Secure-better-auth.session_token=`);
+  if (secureParts.length === 2) return secureParts.pop()?.split(';').shift() || null;
+  
+  return null;
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090';
 
@@ -7,9 +19,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090';
  */
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
   
   const headers: Record<string, string> = {
     ...((options.headers as Record<string, string>) || {}),
@@ -20,8 +29,9 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     headers['Content-Type'] = 'application/json';
   }
 
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
+  const token = getSessionToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(url, {

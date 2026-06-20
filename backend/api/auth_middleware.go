@@ -2,19 +2,16 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type contextKey string
 
 const UserIDKey contextKey = "user_id"
 
-func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Allow background workers if they provide the correct secret
 		workerSecret := os.Getenv("WORKER_SECRET")
@@ -37,35 +34,20 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		tokenString := parts[1]
-		jwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Validate the alg is what you expect
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(jwtSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
+		// Call the database to validate the session token
+		userID, err := h.Repo.ValidateSession(r.Context(), tokenString)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			http.Error(w, "Unauthorized: invalid claims", http.StatusUnauthorized)
-			return
-		}
-
-		sub, ok := claims["sub"].(string)
-		if !ok || sub == "" {
-			http.Error(w, "Unauthorized: missing subject claim", http.StatusUnauthorized)
+		if userID == "" {
+			http.Error(w, "Unauthorized: invalid or expired session", http.StatusUnauthorized)
 			return
 		}
 
 		// Inject the user ID into the request context
-		ctx := context.WithValue(r.Context(), UserIDKey, sub)
+		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 		next(w, r.WithContext(ctx))
 	}
 }

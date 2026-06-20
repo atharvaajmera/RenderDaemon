@@ -32,14 +32,14 @@ func NewHandler(repo repository.JobRepository, cfg *config.ConfigManager, queue 
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.handleRoot) // Health check remains public
-	mux.HandleFunc("/jobs", AuthMiddleware(h.handleJobs))
-	mux.HandleFunc("/jobs/", AuthMiddleware(h.handleJobByID))
-	mux.HandleFunc("/profiles", AuthMiddleware(h.handleProfiles))
-	mux.HandleFunc("/profiles/", AuthMiddleware(h.handleProfileByID))
-	mux.HandleFunc("/workflows", AuthMiddleware(h.handleWorkflows))
-	mux.HandleFunc("/workflows/", AuthMiddleware(h.handleWorkflowByID))
-	mux.HandleFunc("/upload", AuthMiddleware(h.handleUpload))
-	mux.HandleFunc("/download/", AuthMiddleware(h.handleDownload))
+	mux.HandleFunc("/jobs", h.AuthMiddleware(h.handleJobs))
+	mux.HandleFunc("/jobs/", h.AuthMiddleware(h.handleJobByID))
+	mux.HandleFunc("/profiles", h.AuthMiddleware(h.handleProfiles))
+	mux.HandleFunc("/profiles/", h.AuthMiddleware(h.handleProfileByID))
+	mux.HandleFunc("/workflows", h.AuthMiddleware(h.handleWorkflows))
+	mux.HandleFunc("/workflows/", h.AuthMiddleware(h.handleWorkflowByID))
+	mux.HandleFunc("/upload", h.AuthMiddleware(h.handleUpload))
+	mux.HandleFunc("/download/", h.AuthMiddleware(h.handleDownload))
 }
 
 // handleRoot — GET /

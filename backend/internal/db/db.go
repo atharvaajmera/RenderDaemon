@@ -31,6 +31,6 @@ func Connect(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	log.Println("✅ Connected to Postgres (Neon)")
+	log.Println("Connected to Postgres (Neon)")
 	return pool, nil
 }

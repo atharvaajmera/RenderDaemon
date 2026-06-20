@@ -9,6 +9,7 @@ import (
 
 // JobRepository defines the contract for job persistence.
 type JobRepository interface {
+	ValidateSession(ctx context.Context, token string) (string, error)
 	Save(ctx context.Context, job *models.Job) error
 	Get(ctx context.Context, id string) (*models.Job, error)
 	List(ctx context.Context) ([]*models.Job, error)

@@ -20,6 +20,21 @@ func NewPostgresJobRepository(pool *pgxpool.Pool) *PostgresJobRepository {
 	return &PostgresJobRepository{pool: pool}
 }
 
+// ValidateSession validates a Better Auth session token and returns the user ID.
+func (r *PostgresJobRepository) ValidateSession(ctx context.Context, token string) (string, error) {
+	var userID string
+	err := r.pool.QueryRow(ctx, `
+		SELECT "userId" FROM "session" WHERE token = $1 AND "expiresAt" > NOW()
+	`, token).Scan(&userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "", nil // Session not found or expired
+		}
+		return "", fmt.Errorf("failed to validate session: %w", err)
+	}
+	return userID, nil
+}
+
 // Save inserts a new job into the database.
 func (r *PostgresJobRepository) Save(ctx context.Context, job *models.Job) error {
 	dtJSON, err := json.Marshal(job.DynamicText)
