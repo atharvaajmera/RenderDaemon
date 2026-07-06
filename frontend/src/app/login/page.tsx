@@ -1,11 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { signIn, signUp } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FilmStrip, CircleNotch, GoogleLogo } from '@phosphor-icons/react';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -13,6 +21,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +44,7 @@ export default function LoginPage() {
             setError(ctx.error.message);
           },
           onSuccess: () => {
-            router.push('/dashboard');
+            router.push(redirectTo);
             router.refresh();
           },
         },
@@ -48,7 +58,7 @@ export default function LoginPage() {
             setError(ctx.error.message);
           },
           onSuccess: () => {
-            router.push('/dashboard');
+            router.push(redirectTo);
             router.refresh();
           },
         },
@@ -62,7 +72,7 @@ export default function LoginPage() {
     setError(null);
     await signIn.social({
       provider: 'google',
-      callbackURL: '/dashboard',
+      callbackURL: redirectTo,
       fetchOptions: {
         onError: (ctx) => {
           setError(ctx.error.message);

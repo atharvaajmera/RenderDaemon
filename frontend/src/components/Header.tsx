@@ -2,18 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSession, signOut, deleteUser } from '@/lib/auth-client';
-import { SignOut, UserMinus, CaretDown, User } from '@phosphor-icons/react';
-
-const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/create', label: 'Create' },
-  { href: '/config', label: 'Config' },
-];
+import { SignOut, UserMinus, CaretDown, User, Plus, SlidersHorizontal } from '@phosphor-icons/react';
 
 export function Header() {
-  const pathname = usePathname();
   const router = useRouter();
   
   // Better Auth session hook
@@ -48,36 +41,24 @@ export function Header() {
 
   return (
     <header className="bg-surface-glass sticky top-0 z-50 backdrop-blur-xl border-b border-white/10 shadow-sm flex items-center w-full px-5 md:px-10 h-14">
-      {/* Left: Logo + Nav links */}
+      {/* Left: Logo */}
       <div className="flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
+        <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2 no-underline shrink-0">
           <h1 className="text-lg font-bold tracking-tight text-white">RenderDaemon</h1>
         </Link>
-
-        {user && (
-          <nav className="flex items-center gap-1">
-            {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                    isActive
-                      ? 'text-white font-semibold bg-white/10'
-                      : 'text-[#a1a1aa] hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
       </div>
 
-      {/* Right: Auth Profile */}
-      <div className="ml-auto relative">
+      {/* Right: primary action + Auth Profile */}
+      <div className="ml-auto flex items-center gap-3 relative">
+        {user && (
+          <Link
+            href="/create"
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
+          >
+            <Plus weight="bold" />
+            New Render
+          </Link>
+        )}
         {isPending ? (
           <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse"></div>
         ) : user ? (
@@ -102,9 +83,18 @@ export function Header() {
                   <p className="text-[10px] text-[#a1a1aa] truncate">{user.email}</p>
                 </div>
                 
+                <Link
+                  href="/config"
+                  onClick={() => setDropdownOpen(false)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#a1a1aa] hover:text-white hover:bg-white/5 transition-colors text-left"
+                >
+                  <SlidersHorizontal size={16} />
+                  Preset Library
+                </Link>
+
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#a1a1aa] hover:text-white hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#a1a1aa] hover:text-white hover:bg-white/5 transition-colors text-left border-t border-white/5 mt-1 pt-2"
                 >
                   <SignOut size={16} />
                   Sign Out

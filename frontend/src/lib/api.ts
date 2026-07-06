@@ -50,6 +50,12 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
       // Body might not be JSON, fallback to status text
       errorMessage = response.statusText || errorMessage;
     }
+
+    if (response.status === 401 && typeof window !== 'undefined') {
+      const redirectTo = window.location.pathname + window.location.search;
+      window.location.href = `/login?redirect=${encodeURIComponent(redirectTo)}`;
+    }
+
     throw new Error(errorMessage);
   }
 
@@ -137,6 +143,34 @@ export interface JobOutput {
 
 export async function getJobOutputs(id: string): Promise<JobOutput[]> {
   return apiFetch<JobOutput[]>(`/jobs/${id}/outputs`);
+}
+
+/**
+ * Downloads a job output through the authenticated API (the backend requires a
+ * Bearer token, so a plain <a href> link can neither reach the right origin
+ * nor carry auth) and saves it client-side under its real filename.
+ */
+export async function downloadJobOutput(downloadUrl: string, filename: string): Promise<void> {
+  const token = getSessionToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${downloadUrl}`, { headers });
+  if (!response.ok) {
+    throw new Error(`Failed to download file (status ${response.status})`);
+  }
+
+  const blob = await response.blob();
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(objectUrl);
 }
 
 // ---------------------------------------------------------------------------
@@ -267,4 +301,18 @@ export const OPERATION_META: Record<string, { label: string; icon: string; outpu
   thumbnail:     { label: 'Thumbnail',       icon: '🖼️', outputType: 'image' },
   preview_gif:   { label: 'Preview GIF',     icon: '✨', outputType: 'gif' },
   watermark:     { label: 'Watermarked Video', icon: '💧', outputType: 'video' },
+};
+
+// ---------------------------------------------------------------------------
+// Utility: real, in-progress status copy per operation (Render Status page)
+// ---------------------------------------------------------------------------
+
+export const OPERATION_ACTION_LABEL: Record<string, string> = {
+  transcode: 'Exporting your video…',
+  compress: 'Compressing your video…',
+  scale: 'Scaling your video…',
+  extract_audio: 'Extracting your audio…',
+  thumbnail: 'Generating your thumbnail…',
+  preview_gif: 'Creating your preview GIF…',
+  watermark: 'Watermarking your video…',
 };
