@@ -151,7 +151,10 @@ func (r *PostgresJobRepository) UpdateStatus(ctx context.Context, id, status, re
 
 	err := r.pool.QueryRow(ctx, `
 		UPDATE jobs
-		SET status = $1, result = CASE WHEN $2 = '' THEN result ELSE $2 END, updated_at = NOW()
+		SET status = $1,
+		    result = CASE WHEN $2 = '' THEN result ELSE $2 END,
+		    progress = CASE WHEN $1 = 'completed' THEN 100 ELSE progress END,
+		    updated_at = NOW()
 		WHERE id = $3
 		RETURNING id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		          status, progress, error, result, created_at, updated_at
@@ -181,7 +184,7 @@ func (r *PostgresJobRepository) UpdateProgress(ctx context.Context, id string, p
 
 	err := r.pool.QueryRow(ctx, `
 		UPDATE jobs
-		SET progress = $1, updated_at = NOW()
+		SET progress = GREATEST(progress, $1), updated_at = NOW()
 		WHERE id = $2
 		RETURNING id, user_id, task_id, input_url, output_url, template_id, dynamic_text,
 		          status, progress, error, result, created_at, updated_at

@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"os/exec"
@@ -297,8 +298,10 @@ func getParam(params map[string]string, key, fallback string) string {
 }
 
 func runAndReturn(ctx context.Context, req ProcessRequest, args []string, outputPath string) (*ProcessResult, error) {
+	log.Printf("[ffmpeg] %s", strings.Join(args, " "))
+
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
-	
+
 	stderrPipe, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stderr pipe: %v", err)
@@ -354,6 +357,10 @@ func runAndReturn(ctx context.Context, req ProcessRequest, args []string, output
 				if progress - lastReported >= 1.0 || progress == 100 {
 					req.OnProgress(progress)
 					lastReported = progress
+					// Terminal feedback at coarser intervals so it stays readable
+					if progress == 100 || int(progress)%5 == 0 {
+						log.Printf("[ffmpeg] %s progress: %.0f%%", filepath.Base(outputPath), progress)
+					}
 				}
 			}
 		}
@@ -361,8 +368,10 @@ func runAndReturn(ctx context.Context, req ProcessRequest, args []string, output
 
 	if err := cmd.Wait(); err != nil {
 		if ctx.Err() == context.Canceled {
+			log.Printf("[ffmpeg] %s cancelled", filepath.Base(outputPath))
 			return nil, fmt.Errorf("ffmpeg cancelled by context")
 		}
+		log.Printf("[ffmpeg] %s failed: %v", filepath.Base(outputPath), err)
 		return nil, fmt.Errorf("ffmpeg failed: %v", err)
 	}
 
@@ -371,6 +380,7 @@ func runAndReturn(ctx context.Context, req ProcessRequest, args []string, output
 		req.OnProgress(100.0)
 	}
 
+	log.Printf("[ffmpeg] %s done", filepath.Base(outputPath))
 	return &ProcessResult{OutputPath: outputPath}, nil
 }
 

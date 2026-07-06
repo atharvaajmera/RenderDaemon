@@ -100,6 +100,7 @@ func handleRenderVideo(ctx context.Context, t *asynq.Task) error {
 		log.Printf("[job %s] executing workflow: %s", payload.JobID, wf.Name)
 		exec := workflow.NewExecutor(cfg.Profiles())
 		result, processErr = exec.Execute(ctx, wf, req, func(msg string) {
+			log.Printf("[job %s] %s", payload.JobID, msg)
 			patchStatus(ctx, payload.JobID, "processing", msg)
 		})
 	} else if profile := cfg.Profiles().ResolveProfile(payload.TemplateID); profile != nil {
